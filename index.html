@@ -5,26 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Modules &amp; Packages Quest</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="style.css">
-  <script type="module" src="app.js?v=2"></script>
+  <link rel="stylesheet" href="style.css?v=3">
+  <script type="module" src="app.js?v=3"></script>
 </head>
 <body>
   <main>
     <header>
       <div class="eyebrow">PYTHON ESSENTIALS 2 / MODULE 1 PRACTICE</div>
       <h1>Modules &amp; Packages <span>Quest</span></h1>
-      <p class="intro">100 course-aligned challenges. Trace the code, try again, and make it stick.</p>
+      <p class="intro">133 challenges, including chapter-quiz and module-completion practice.</p>
     </header>
     <section class="dashboard" aria-label="Your progress">
-      <div><strong id="learned">0 / 100</strong><span>Questions learned</span></div>
+      <div><strong id="learned">0 / 133</strong><span>Questions learned</span></div>
       <div><strong id="score">0</strong><span>Correct first try</span></div>
       <div><strong id="reviews">0</strong><span>Reviews completed</span></div>
     </section>
-    <progress id="progress" max="100" value="0" aria-label="Questions learned"></progress>
+    <progress id="progress" max="133" value="0" aria-label="Questions learned"></progress>
     <p id="storage" class="notice" role="status"></p>
     <section id="quiz" class="card" aria-labelledby="question">
       <div class="question-meta"><span id="topic">Loading...</span><span id="mode"></span></div>
+      <p id="practice-group" class="practice-group"></p>
       <h2 id="question">Preparing your quest...</h2>
+      <div id="question-body" class="question-body"></div>
       <div id="options" class="options" aria-label="Answer choices"></div>
       <div id="feedback" class="feedback" role="status" aria-live="polite"></div>
       <div class="actions">
@@ -34,7 +36,7 @@
     </section>
     <section id="complete" class="card" hidden>
       <div class="eyebrow">QUEST COMPLETE</div>
-      <h2>100 questions. Stronger Python skills.</h2>
+      <h2 id="complete-title">133 questions. Stronger Python skills.</h2>
       <p id="summary"></p>
       <p>You answered every question correctly and cleared all scheduled reviews.</p>
     </section>
@@ -44,7 +46,8 @@
         <span id="save-status">Progress saves in this browser.</span>
         <button id="reset" class="secondary" type="button">Start over</button>
       </div>
-      <p class="small">Course-aligned bank v2: 100 original practice questions, not official exam questions.
+      <p class="small">Bank v3: 100 core + 18 completion-style + 15 chapter-quiz-style original questions.
+        Not copied or official assessment questions.
         Based on the scope of <a href="https://www.netacad.com/courses/python-essentials-2?courseLang=en-US" target="_blank" rel="noreferrer">Python Essentials 2, Module 1</a>.
         No accounts, tracking, or external dependencies.</p>
     </footer>

@@ -1,7 +1,8 @@
-import { Quiz } from "./engine.js?v=2";
+import { Quiz } from "./engine.js?v=3";
+import { renderQuestion, renderOption } from "./renderer.js?v=3";
 
 const $ = id => document.getElementById(id);
-const KEY = "python-modules-quest-v2";
+const KEY = "python-modules-quest-v3";
 const letters = "ABCD";
 let quiz;
 let bank;
@@ -41,17 +42,22 @@ function render() {
   $("learned").textContent = `${quiz.learned} / ${bank.length}`;
   $("score").textContent = quiz.firstTry;
   $("reviews").textContent = quiz.reviews;
+  $("progress").max = bank.length;
   $("progress").value = quiz.learned;
   $("quiz").hidden = quiz.done;
   $("complete").hidden = !quiz.done;
   if (quiz.done) {
+    $("complete-title").textContent = `${bank.length} questions. Stronger Python skills.`;
     $("summary").textContent = `First-try score: ${quiz.firstTry}/${bank.length} (${Math.round(100 * quiz.firstTry / bank.length)}%). Review questions completed: ${quiz.reviews}.`;
     return;
   }
   const q = bank[quiz.current.id];
   $("topic").textContent = q[0];
   $("mode").textContent = quiz.current.review ? "REVIEW ROUND" : `QUESTION ${quiz.learned + (quiz.solved ? 0 : 1)} / ${bank.length}`;
-  $("question").textContent = q[1];
+  $("practice-group").textContent = quiz.current.id >= 118
+    ? `Chapter 1.${quiz.current.id < 122 ? 1 : quiz.current.id < 126 ? 2 : quiz.current.id < 129 ? 3 : 4} quiz practice`
+    : quiz.current.id >= 100 ? "Module completion practice" : "Core practice";
+  $("question").textContent = renderQuestion($("question-body"), q[1], quiz.current.id);
   $("options").replaceChildren();
   q[2].forEach((text, i) => {
     const button = document.createElement("button");
@@ -63,15 +69,15 @@ function render() {
     letter.textContent = letters[i];
     const label = document.createElement("span");
     label.className = "option-text";
-    label.textContent = text;
+    renderOption(label, text);
     button.append(letter, label);
     if (quiz.wrong.includes(i)) {
       button.classList.add("wrong");
-      label.textContent += " (not correct)";
+      label.append(document.createTextNode(" (not correct)"));
     }
     if (quiz.solved && i === q[3]) {
       button.classList.add("correct");
-      label.textContent += " (correct)";
+      label.append(document.createTextNode(" (correct)"));
     }
     button.disabled = quiz.solved || quiz.wrong.includes(i);
     button.addEventListener("click", () => submit(i));
@@ -131,10 +137,10 @@ document.addEventListener("keydown", event => {
 });
 
 async function start() {
-  const response = await fetch("questions.json?v=2");
+  const response = await fetch("questions.json?v=3");
   if (!response.ok) throw new Error(`Question bank request failed (${response.status}).`);
   bank = await response.json();
-  if (!Array.isArray(bank) || bank.length !== 100 || bank.some(q =>
+  if (!Array.isArray(bank) || bank.length !== 133 || bank.some(q =>
     !Array.isArray(q) || q.length !== 6 || !Array.isArray(q[2]) || q[2].length !== 4 ||
     !Number.isInteger(q[3]) || q[3] < 0 || q[3] > 3 ||
     ![q[0], q[1], q[4], q[5], ...q[2]].every(s => typeof s === "string" && s.length))) {
@@ -143,8 +149,9 @@ async function start() {
   let saved;
   try {
     saved = localStorage.getItem(KEY);
-    if (!saved && localStorage.getItem("python-modules-quest-v1")) {
-      $("storage").textContent = "New course-aligned questions! This bank starts fresh progress; your previous bank's saved data has been kept separately.";
+    if (!saved && (localStorage.getItem("python-modules-quest-v2") ||
+                  localStorage.getItem("python-modules-quest-v1"))) {
+      $("storage").textContent = "Expanded 133-question quest! This bank starts fresh progress; your previous banks' saved data has been kept separately.";
     }
   }
   catch (error) {
