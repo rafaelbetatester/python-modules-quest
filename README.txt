@@ -35,26 +35,39 @@ HOW TO PLAY
   Correcting a mistake still increases "Questions learned", not the first-try score.
 - Finish all 100 questions and every scheduled review to complete the quest.
 - Start over resets the game and shuffles question order.
+- For questions asking for two true statements, select the A/B/C/D option
+  containing the correct pair. The controls remain single-answer.
 
 SAVED PROGRESS
 Progress saves automatically in this browser's local storage. Return using the
 same browser, hostname and port to resume. Changing the port or using localhost
 instead of 127.0.0.1 creates a different browser storage location.
 The public website and the local version have separate saved progress.
+The refreshed course-aligned bank uses its own v2 saved-progress key. Old v1
+data is left untouched, but answers from the old bank are not applied to new
+questions. Returning learners see a notice explaining the fresh progress.
 Private browsing, storage restrictions, or clearing site data can remove progress.
 Storage errors appear on the page rather than being hidden.
 Use one quiz tab at a time: separate tabs do not synchronize their progress.
 No progress is sent to external services.
 
 CONTENT
-Imports, module namespaces, user modules, __name__, sys.path, bytecode caches,
-regular and namespace packages, relative imports, math, random, platform, and pip.
+20 imports/namespace questions; 14 user-module questions; 10 package questions;
+18 math questions; 12 random questions; 10 platform questions; 16 pip questions.
+Code tracing, name collisions, import aliases, repeated imports, shared module
+state, __name__, __pycache__, shebangs, underscore conventions, sys.path, ZIP
+imports, package initialization, qualified imports, trigonometry, logarithms,
+rounding, pseudorandom ranges, sampling, platform data, and package management.
 Questions are original practice material, not official or copied exam questions.
 Public scope reference:
 https://www.netacad.com/courses/python-essentials-2?courseLang=en-US
-The detailed course lessons require login and were not accessed.
-Some examples intentionally explain nuances of modern Python/pip, including
-namespace packages and automatic user-installation defaults.
+The refreshed bank was aligned to the four Module 1 chapters, chapter quizzes,
+and module-test review that the user shared in their browser. Source questions
+were not copied or closely reworded; scenarios, code, options, hints, and
+explanations are original. Login-protected course content is not distributed.
+Legacy pip search behavior is explicitly labeled historical: PyPI's XML-RPC
+search has been retired. Modern installation defaults and namespace-package
+exceptions are explained accurately instead of teaching obsolete absolutes.
 Distractors are incorrect examples: they are never executed by the game.
 
 TESTING
@@ -64,6 +77,8 @@ Open browser developer tools and run:
     const { runTests } = await import('./engine.test.js');
     console.table(runTests(await (await fetch('questions.json')).json()));
 All returned results should have passed: true.
+The Python tests execute at least 40 deterministic output questions in fresh
+interpreters and compare actual output with each stored correct choice.
 
 FILES
 play.py           Standard-library, loopback-only Python HTTP launcher.

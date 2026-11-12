@@ -1,7 +1,7 @@
-import { Quiz } from "./engine.js";
+import { Quiz } from "./engine.js?v=2";
 
 const $ = id => document.getElementById(id);
-const KEY = "python-modules-quest-v1";
+const KEY = "python-modules-quest-v2";
 const letters = "ABCD";
 let quiz;
 let bank;
@@ -131,7 +131,7 @@ document.addEventListener("keydown", event => {
 });
 
 async function start() {
-  const response = await fetch("questions.json");
+  const response = await fetch("questions.json?v=2");
   if (!response.ok) throw new Error(`Question bank request failed (${response.status}).`);
   bank = await response.json();
   if (!Array.isArray(bank) || bank.length !== 100 || bank.some(q =>
@@ -141,7 +141,12 @@ async function start() {
     throw new Error("The question bank is incomplete or invalid.");
   }
   let saved;
-  try { saved = localStorage.getItem(KEY); }
+  try {
+    saved = localStorage.getItem(KEY);
+    if (!saved && localStorage.getItem("python-modules-quest-v1")) {
+      $("storage").textContent = "New course-aligned questions! This bank starts fresh progress; your previous bank's saved data has been kept separately.";
+    }
+  }
   catch (error) {
     storageAvailable = false;
     $("storage").textContent = `Browser storage is unavailable: ${error.message}. Progress will last only in this tab.`;
