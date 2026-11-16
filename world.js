@@ -1,5 +1,5 @@
-import { CHALLENGES, starsFor } from "./campaign.js?v=7";
-import { Trail, gateX, GATE_SPACING } from "./arcade.js?v=7";
+import { CHALLENGES, starsFor } from "./campaign.js?v=8";
+import { Trail, gateX, GATE_SPACING } from "./arcade.js?v=8";
 
 export const GROUND = 340;
 export const WORLD_WIDTH = 160 + CHALLENGES.length * GATE_SPACING;
@@ -158,7 +158,8 @@ export class World {
         this.travelTo(trail.index + 1);
         this.arcadeChanged("finish", trail);
       } else {
-        const hud = [trail.energy, trail.hearts, trail.retries, trail.saved.half].join("/");
+        const hud = [trail.energy, trail.hearts, trail.retries, trail.saved.half,
+          trail.bots.filter(bot => bot.alive).length].join("/");
         if (hud !== this.lastHUD) { this.lastHUD = hud; this.arcadeChanged("hud", trail); }
       }
       return;
@@ -268,6 +269,7 @@ export class World {
         ctx.fillRect(x + 14, 222, 32, 17);
       }
     }
+    if (this.trail) this.drawTrailBackdrop();
     ctx.fillStyle = region.soil; ctx.fillRect(0, GROUND, WORLD_WIDTH, HEIGHT - GROUND);
     ctx.fillStyle = region.grass; ctx.fillRect(0, GROUND, WORLD_WIDTH, 12);
     ctx.fillStyle = "#0002";
@@ -328,7 +330,32 @@ export class World {
     ctx.fillStyle = "#fff4d9"; ctx.font = "bold 12px monospace"; ctx.fillText(region.name, 28, 36);
     if (this.trail) {
       ctx.fillStyle = "#17263ce8"; ctx.fillRect(16, 53, Math.min(310, this.width - 32), 30);
-      ctx.fillStyle = "#91f0e0"; ctx.fillText(`BYTE RUN ${this.trail.index + 1} / DIFFICULTY ${this.trail.difficulty}`, 28, 73);
+      ctx.fillStyle = this.trail.accent; ctx.font = "bold 11px monospace";
+      ctx.fillText(`${this.trail.index + 1}: ${this.trail.name}`, 28, 73);
+    }
+  }
+
+  drawTrailBackdrop() {
+    const { ctx, trail } = this;
+    ctx.fillStyle = "#182f4560";
+    for (let x = trail.start + 100; x < trail.end; x += 260) {
+      if (x + 180 < this.camera || x > this.camera + this.width) continue;
+      if (trail.mapStyle === 4) {
+        ctx.fillRect(x, 180, 12, 160); ctx.fillRect(x + 95, 155, 10, 185);
+        ctx.fillStyle = "#376b6855";
+        ctx.fillRect(x - 20, 162, 70, 32); ctx.fillRect(x + 70, 135, 64, 32);
+      } else if (trail.mapStyle === 3 || trail.mapStyle === 5) {
+        ctx.fillRect(x, 120, 10, 220); ctx.fillRect(x, 120, 155, 10);
+        ctx.fillRect(x + 145, 120, 10, 220);
+        ctx.fillStyle = trail.accent; ctx.globalAlpha = 0.35;
+        ctx.fillRect(x + 25, 143, 100, 4); ctx.fillRect(x + 70, 150, 6, 70);
+        ctx.globalAlpha = 1;
+      } else {
+        ctx.fillRect(x, 210, 24, 130); ctx.fillRect(x + 120, 245, 24, 95);
+        ctx.fillRect(x - 6, 200, 36, 12); ctx.fillRect(x + 114, 235, 36, 12);
+        if (trail.mapStyle === 2) ctx.fillRect(x, 200, 144, 10);
+      }
+      ctx.fillStyle = "#182f4560";
     }
   }
 
@@ -344,15 +371,43 @@ export class World {
       if (!bot.alive) return;
       ctx.fillStyle = "#283251"; ctx.fillRect(bot.x + 3, bot.y + 16, 7, 8);
       ctx.fillRect(bot.x + 18, bot.y + 16, 7, 8);
-      ctx.fillStyle = "#d97187"; ctx.fillRect(bot.x, bot.y + 3, 28, 16);
+      ctx.fillStyle = { patrol: "#d97187", armored: "#8998b4", hopper: "#8cd789",
+        drone: "#ba9ce4", sentry: "#e5a56e" }[bot.kind];
+      ctx.fillRect(bot.x, bot.y + 3, 28, 16);
       ctx.fillStyle = "#ffd39f"; ctx.fillRect(bot.x + 4, bot.y + 7, 20, 5);
       ctx.fillStyle = "#192c42"; ctx.fillRect(bot.x + 7, bot.y + 7, 3, 5);
       ctx.fillRect(bot.x + 18, bot.y + 7, 3, 5);
       ctx.fillStyle = "#9ce8df"; ctx.fillRect(bot.x + 12, bot.y - 4, 4, 7);
+      if (bot.kind === "armored") {
+        ctx.fillStyle = "#d9e3ef"; ctx.fillRect(bot.x - 3, bot.y, 34, 5);
+        ctx.fillRect(bot.x - 3, bot.y + 4, 5, 16); ctx.fillRect(bot.x + 26, bot.y + 4, 5, 16);
+        ctx.fillStyle = "#17263c"; ctx.fillRect(bot.x + 4, bot.y - 12, 20, 5);
+        ctx.fillStyle = "#ffda8b"; ctx.fillRect(bot.x + 4, bot.y - 12, bot.hp * 10, 5);
+      } else if (bot.kind === "drone") {
+        ctx.fillStyle = "#e3d6fc"; ctx.fillRect(bot.x - 12, bot.y - 1, 15, 5);
+        ctx.fillRect(bot.x + 25, bot.y - 1, 15, 5);
+        ctx.fillStyle = "#69d8df"; ctx.fillRect(bot.x + 8, bot.y + 24, 12, 8);
+      } else if (bot.kind === "hopper") {
+        ctx.fillStyle = "#c8edb7"; ctx.fillRect(bot.x + 5, bot.y + 22, 18, 3);
+        ctx.fillRect(bot.x + 8, bot.y + 26, 12, 3);
+      } else if (bot.kind === "sentry") {
+        const facing = this.player.x < bot.x ? -1 : 1;
+        ctx.fillStyle = bot.warning ? "#fff3c4" : "#70495a";
+        ctx.fillRect(bot.x + (facing < 0 ? -12 : 23), bot.y + 8, 17, 7);
+        if (bot.warning) {
+          ctx.fillStyle = "#17263c"; ctx.fillRect(bot.x + 4, bot.y - 29, 21, 17);
+          ctx.fillStyle = "#ffc297"; ctx.font = "bold 13px monospace"; ctx.textAlign = "center";
+          ctx.fillText("!", bot.x + 14, bot.y - 16);
+        }
+      }
     });
     trail.projectiles.forEach(shot => {
       ctx.fillStyle = "#b2ffff"; ctx.fillRect(shot.x, shot.y, shot.width, shot.height);
       ctx.fillStyle = "#4cc8e2"; ctx.fillRect(shot.x - shot.direction * 10, shot.y + 2, 10, 3);
+    });
+    trail.enemyShots.forEach(shot => {
+      ctx.fillStyle = "#713b63"; ctx.fillRect(shot.x - 3, shot.y - 3, shot.width + 6, shot.height + 6);
+      ctx.fillStyle = "#ffb18e"; ctx.fillRect(shot.x, shot.y, shot.width, shot.height);
     });
     trail.spikes.forEach(spike => {
       ctx.fillStyle = "#ffd193";
@@ -372,6 +427,7 @@ export class World {
       ctx.fillStyle = "#17263c"; ctx.font = "bold 10px monospace"; ctx.textAlign = "center";
       ctx.fillText(field.active ? "ZAP" : "OFF", field.x + field.width / 2, field.y - 12);
     });
+    ctx.fillStyle = "#7de8c444"; ctx.fillRect(trail.checkpointX - 40, GROUND - 6, 110, 6);
     ctx.fillStyle = "#fff1bd"; ctx.fillRect(trail.checkpointX + 12, GROUND - 75, 4, 75);
     ctx.fillStyle = trail.saved.half ? "#78e3bd" : "#ffe2a0";
     ctx.fillRect(trail.checkpointX + 16, GROUND - 75, 36, 20);

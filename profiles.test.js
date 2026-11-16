@@ -1,6 +1,6 @@
 export async function runProfileTests(bank) {
-  const { Profiles, playerName, profileKey, LEGACY_KEY } = await import("./profiles.js?v=7");
-  const { Campaign, CHALLENGES } = await import("./campaign.js?v=7");
+  const { Profiles, playerName, profileKey, LEGACY_KEY } = await import("./profiles.js?v=8");
+  const { Campaign, CHALLENGES } = await import("./campaign.js?v=8");
   const results = [];
   const assert = (value, message) => { if (!value) throw new Error(message); };
   const throws = action => {

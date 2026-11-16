@@ -1,7 +1,7 @@
-import { Campaign, CHALLENGES, starsFor } from "./campaign.js?v=7";
-import { World } from "./world.js?v=7";
-import { renderQuestion, renderOption } from "./renderer.js?v=7";
-import { Profiles, playerName } from "./profiles.js?v=7";
+import { Campaign, CHALLENGES, starsFor } from "./campaign.js?v=8";
+import { World } from "./world.js?v=8";
+import { renderQuestion, renderOption } from "./renderer.js?v=8";
+import { Profiles, playerName } from "./profiles.js?v=8";
 
 const $ = id => document.getElementById(id);
 const letters = "ABCD";
@@ -66,7 +66,7 @@ function renderArcade() {
   const trail = world?.trail;
   $("arcade-score").textContent = `Best energy: ${campaign.trails.reduce((sum, score) => sum + (score ?? 0), 0)} / 108`;
   $("arcade-hud").textContent = trail
-    ? `Route ${trail.index + 1}/18 / Difficulty ${trail.difficulty}/5 / Shields ${trail.hearts}/3 / Energy ${trail.energy}/6 / ${trail.saved.half ? "Checkpoint saved" : "Reach the SAVE flag"} / Retries ${trail.retries}`
+    ? `Route ${trail.index + 1}/18: ${trail.name} / Difficulty ${trail.difficulty}/5 / Shields ${trail.hearts}/3 / Enemies ${trail.bots.filter(bot => bot.alive).length}/${trail.bots.length} / Energy ${trail.energy}/6 / ${trail.saved.half ? "Checkpoint saved" : "Reach the SAVE flag"} / Retries ${trail.retries}`
     : campaign.completed ? campaign.trails[routeIndex()] === null
       ? "Your next platform route is ready. Play it, or skip it to reach the next quiz."
       : "Next quiz ahead! Replay a route for more energy, or use the map to focus on learning."
@@ -82,7 +82,7 @@ function arcadeChanged(kind, trail) {
     if (kind === "checkpoint") $("world-message").textContent = "Checkpoint saved! Retries and reloads resume here. Quiz stars are safe.";
     else if (kind === "finish") $("world-message").textContent = `Route cleared! ${trail.energy}/6 energy collected. Your next quiz gate is ready.`;
     else if (kind === "skip") $("world-message").textContent = "Route skipped. Your quiz stars and learning progress are unchanged.";
-    else if (kind === "start") $("world-message").textContent = "Byte Runner! Jump or pulse the bots, collect gold energy cells, and reach the next gate.";
+    else if (kind === "start") $("world-message").textContent = "Watch the terrain! Armor takes two pulses or one stomp. Jump over ground attacks, watch for drones, and use the SAVE pad as a safe zone.";
     renderWorld();
   } else renderArcade();
 }
@@ -392,7 +392,7 @@ function activatePlayer(loaded, temporary) {
 }
 
 async function start() {
-  const response = await fetch("questions.json?v=7");
+  const response = await fetch("questions.json?v=8");
   if (!response.ok) throw new Error(`Question bank request failed (${response.status}).`);
   bank = await response.json();
   if (!Array.isArray(bank) || bank.length !== 133 || bank.some(q =>

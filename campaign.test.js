@@ -1,6 +1,6 @@
 export async function runCampaignTests(bank) {
-  const { Campaign, CHALLENGES, starsFor } = await import("./campaign.js?v=7");
-  const { Player, World, GROUND, WORLD_WIDTH } = await import("./world.js?v=7");
+  const { Campaign, CHALLENGES, starsFor } = await import("./campaign.js?v=8");
+  const { Player, World, GROUND, WORLD_WIDTH } = await import("./world.js?v=8");
   const results = [];
   const assert = (condition, message) => { if (!condition) throw new Error(message); };
   const throws = action => {

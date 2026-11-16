@@ -4,7 +4,7 @@ A 2D browser adventure for Python Essentials 2, Module 1.
 
 PUBLIC WEBSITE
 https://rafaelbetatester.github.io/python-modules-quest/
-The v7 release includes Byte Runner's 18 progressive platform routes.
+The v8 release makes Byte Runner substantially harder with 18 distinct routes.
 Modules-Packages-Quest.zip contains this release for local play.
 Share the game link. The hosted version needs no Python installation and does
 not depend on the author's computer. Each browser keeps its own progress.
@@ -31,11 +31,22 @@ Meadow, Emerald Woods, Crystal Coast and Starlight Summit.
 After each quiz, Continue starts one of 18 platform routes to the next gate.
 Routes gradually add roaming glitch-bots, real pits, spikes, moving platforms
 and timed ZAP fields. Jump onto bots or pulse them; wait for fields to turn OFF.
+Each route now has 5-13 enemies instead of 1-4. Silver armored bots take two
+pulses or one stomp; green hoppers jump, purple drones fly, and orange sentries
+flash ! before firing aimed projectiles. Dodge by jumping or changing position.
+Pulses travel about 320 pixels and fire at most once per 0.48 seconds.
+The 18 terrain layouts span Rift Causeway, Switchback Yard, Skybridge Ruins,
+Pulse Foundry, Drone Gardens and Glitch Gauntlet, with different pit positions,
+spike beds, ledges, moving platforms and staggered timed fields as you progress.
+Every route requires deliberate jumping; holding right and fire no longer wins.
 Gold energy cells are optional: collect up to six per route. Best energy is
 separate from quiz stars and levels. Worse replays never lower the best score.
 Each route has three shields, damage protection and a SAVE checkpoint.
 Falling or losing all shields retries only this route from the checkpoint.
 Checkpoint energy survives retry/reload; unsaved pickups and bots reset.
+Enemy shots cannot enter the safe start, SAVE pad or exit. Retrying resets enemy
+positions, armor, shot timers and moving terrain as well as restoring shields.
+v7 route/checkpoint saves remain compatible; checkpoints use the new layouts.
 Restart route starts that route fresh. Quiz rewards are NEVER removed.
 Use Skip route or the Challenge map for accessible play without any arcade
 requirement or quiz-star penalty. Completed routes can be replayed.
@@ -133,16 +144,16 @@ TESTING
 Python tests execute deterministic output examples in fresh interpreters,
 check multifile modules in isolated directories, and validate the HTTP server.
 With the server running, execute in browser developer tools:
-    const bank = await (await fetch('questions.json?v=7')).json();
-    const { runTests } = await import('./engine.test.js?v=7');
+    const bank = await (await fetch('questions.json?v=8')).json();
+    const { runTests } = await import('./engine.test.js?v=8');
     console.table(runTests(bank));
-    const { runRendererTests } = await import('./renderer.test.js?v=7');
+    const { runRendererTests } = await import('./renderer.test.js?v=8');
     console.table(await runRendererTests(bank));
-    const { runCampaignTests } = await import('./campaign.test.js?v=7');
+    const { runCampaignTests } = await import('./campaign.test.js?v=8');
     console.table(await runCampaignTests(bank));
-    const { runProfileTests } = await import('./profiles.test.js?v=7');
+    const { runProfileTests } = await import('./profiles.test.js?v=8');
     console.table(await runProfileTests(bank));
-    const { runArcadeTests } = await import('./arcade.test.js?v=7');
+    const { runArcadeTests } = await import('./arcade.test.js?v=8');
     console.table(await runArcadeTests());
 Every result should have passed: true. Tests cover retries, exact star
 thresholds, stage coverage, review scoring, replay rewards, save validation,
@@ -153,8 +164,11 @@ Profile tests check name validation, player separation, exact unfinished-state
 restore, completed-adventure restore, safe legacy adoption and storage errors.
 Arcade tests check energy, pulse cooldown/hits, stomp/side collisions, damage
 protection, checkpoint retry, moving-platform carry, route saves and switching.
-All 18 routes are simulated with actual movement/jump physics and pulse fire,
-and must reach a checkpoint and finish without shield damage or retries.
+All 18 complete encounters are searched using real 100ms movement/jump/fire
+and wait inputs, including every enemy and hazard. Each must reach a checkpoint
+and finish alive without retries; no enemies are removed to make tests pass.
+The separate naive-input check proves holding right/fire fails on all routes.
+Focused tests cover armor, airborne enemies, sentry shots, safe pads and resets.
 
 FILES
 play.py           Standard-library loopback-only Python HTTP launcher.
