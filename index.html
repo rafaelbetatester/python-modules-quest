@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#152b36">
-  <title>Modules &amp; Packages Quest | Python Adventure</title>
+  <title>Byte Runner | Python Adventure</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="style.css?v=6">
-  <script type="module" src="app.js?v=6"></script>
+  <link rel="stylesheet" href="style.css?v=7">
+  <script type="module" src="app.js?v=7"></script>
 </head>
 <body>
   <main id="game" inert>
@@ -15,7 +15,8 @@
       <div>
         <div class="eyebrow">PYTHON ESSENTIALS 2 / MODULE 1</div>
         <h1>Modules &amp; Packages <span>Quest</span></h1>
-        <p class="intro">A little adventure. A lot of Python. Walk, learn, and reach the castle.</p>
+        <p class="intro">Learn Python. Jump the gaps. Zap the glitches. Reach the castle.</p>
+        <p class="preview-note">BYTE RUNNER / 18 PLATFORM ROUTES / LEARN &amp; EXPLORE</p>
       </div>
       <div class="hero-badge" aria-label="19 gates, 133 questions">19 GATES<br><span>133 QUESTIONS</span></div>
     </header>
@@ -33,21 +34,27 @@
     <progress id="progress" max="57" value="0" aria-label="Mastery stars"></progress>
     <p id="storage" class="notice" role="status"></p>
     <section class="world-card" aria-label="Walkable challenge world">
-      <div class="world-heading"><span>THE PYTHON TRAIL</span><span>Explore at your own pace</span></div>
+      <div class="world-heading"><span>BYTE RUNNER</span><span id="arcade-score">Best energy: 0 / 108</span></div>
       <canvas id="world" width="1000" height="420" tabindex="0" role="img"
-        aria-label="2D Python adventure. Focus the scene, use left and right arrows to walk, Space to jump, and Enter at a gate. Alternatively choose a challenge from the list below."
+        aria-label="2D Python platform adventure. Arrow keys move, Space jumps, X or J fires a pulse, Enter opens a gate. Use Skip route or the challenge map for accessible learning."
         aria-describedby="controls-help">Use the challenge list below if the animated world is unavailable.</canvas>
       <div class="gate-bar">
         <p id="nearby" role="status">Preparing your adventure...</p>
         <button id="enter-gate" type="button" disabled>Enter challenge</button>
       </div>
     </section>
+    <section class="arcade-bar" aria-label="Platform route status and accessible controls">
+      <p id="arcade-hud" role="status">Clear a quiz to start a platform route.</p>
+      <div><button id="run-route" class="secondary" type="button" disabled>Play route 1</button>
+        <button id="skip-route" class="secondary" type="button" disabled>Skip route / keep stars</button></div>
+    </section>
     <div class="controls-row">
-      <p id="controls-help">Click the scene to play &middot; &larr; &rarr; or A/D to walk &middot; Space to jump &middot; Enter at a gate</p>
+      <p id="controls-help">Click the scene &middot; &larr; &rarr; or A/D move &middot; Space jumps &middot; X/J pulse &middot; Enter at gates<br>Stomp or pulse glitch-bots. Gold cells give energy. Glowing blue platforms move. Wait for ZAP fields to turn OFF.</p>
       <div class="touch-controls" aria-label="Movement controls">
         <button id="move-left" type="button" aria-label="Walk left">&larr;</button>
         <button id="move-right" type="button" aria-label="Walk right">&rarr;</button>
         <button id="jump" type="button" aria-label="Jump">Jump &uarr;</button>
+        <button id="fire" type="button" aria-label="Fire pulse">Pulse X</button>
       </div>
     </div>
     <p id="world-message" class="notice" role="status"></p>
@@ -57,13 +64,13 @@
       <p>All 133 questions learned. Replay any gate to earn the remaining mastery stars.</p>
     </section>
     <section class="how-to" aria-label="How stars work">
-      <div><strong>EXPLORE</strong><p>Walk to a gate. Each challenge has 5&ndash;10 questions.</p></div>
+      <div><strong>LEARN &amp; RUN</strong><p>5&ndash;10 questions at each gate, then a platform route. Bots, pits and timed hazards get trickier.</p></div>
       <div><strong>EARN STARS</strong><p>First-attempt accuracy: 90% earns 3 stars, 70% earns 2. Finish to earn 1.</p></div>
       <div><strong>LEVEL UP</strong><p>Every 5 stars raises your level. Replay to improve, never lose stars.</p></div>
     </section>
     <details class="stage-map">
       <summary>Challenge map <span>Accessible play / skip the walking</span></summary>
-      <p>Chapter and completion skills first, then deeper practice. Clear each gate to unlock the next.</p>
+      <p>Chapter and completion skills first, then deeper practice. Choosing the next unlocked quiz here skips its platform route without reducing quiz stars.</p>
       <div id="challenge-list" class="challenge-list"></div>
     </details>
     <footer>

@@ -1,9 +1,11 @@
-MODULES & PACKAGES QUEST / THE PYTHON TRAIL
+MODULES & PACKAGES QUEST / BYTE RUNNER
 A 2D browser adventure for Python Essentials 2, Module 1.
 19 challenge gates / 133 original questions / 57 mastery stars.
 
 PUBLIC WEBSITE
 https://rafaelbetatester.github.io/python-modules-quest/
+The v7 release includes Byte Runner's 18 progressive platform routes.
+Modules-Packages-Quest.zip contains this release for local play.
 Share the game link. The hosted version needs no Python installation and does
 not depend on the author's computer. Each browser keeps its own progress.
 GitHub Pages hosts static files. GitHub may log visitor IP addresses for
@@ -22,13 +24,22 @@ To open the browser yourself: python play.py --no-browser
 
 EXPLORE
 Click or tap the scene to focus it. Arrow keys or A/D walk, Space jumps,
-and Enter opens the nearby gate. On-screen movement buttons also work with
+X or J fires a pulse, and Enter opens the nearby gate. On-screen buttons work with
 pointer/touch or a held Space/Enter key. Release controls to stop moving.
 The character travels through four original pixel-art regions: Sunrise
 Meadow, Emerald Woods, Crystal Coast and Starlight Summit.
-There are no enemies, lives, movement penalties or timers.
-Use the Challenge map for accessible play without walking.
-Background decorations are not collectibles. Stars are earned by learning.
+After each quiz, Continue starts one of 18 platform routes to the next gate.
+Routes gradually add roaming glitch-bots, real pits, spikes, moving platforms
+and timed ZAP fields. Jump onto bots or pulse them; wait for fields to turn OFF.
+Gold energy cells are optional: collect up to six per route. Best energy is
+separate from quiz stars and levels. Worse replays never lower the best score.
+Each route has three shields, damage protection and a SAVE checkpoint.
+Falling or losing all shields retries only this route from the checkpoint.
+Checkpoint energy survives retry/reload; unsaved pickups and bots reset.
+Restart route starts that route fresh. Quiz rewards are NEVER removed.
+Use Skip route or the Challenge map for accessible play without any arcade
+requirement or quiz-star penalty. Completed routes can be replayed.
+Quizzes have no timers. Background decorations are not collectibles.
 Reduced-motion preferences disable ambient floating effects.
 
 CHALLENGES AND STARS
@@ -46,7 +57,8 @@ CHALLENGES AND STARS
   Thresholds use exact fractions, not rounded displayed percentages.
 - Hints are available without a separate penalty. A wrong submitted choice
   removes first-attempt credit. Reviews cannot inflate the original score.
-- Completing a gate unlocks the next. All 19 gates unlock after all are cleared.
+- Completing a gate unlocks its next quiz; reach it through the platform route
+  or explicitly skip that route with the map/button.
 - Every five total stars raises your level: level = 1 + floor(stars / 5).
   Maximum: 57 stars, level 12.
 - Replay gates to improve the best score. Worse/equal replays never remove
@@ -66,7 +78,10 @@ Names have 2-24 characters, start with a letter or number, and can contain
 letters, numbers, spaces, dots, underscores and hyphens. Names ignore case;
 leading/trailing spaces and repeated whitespace are normalized.
 Named saves use python-modules-quest-profile-v1:<encoded-lowercase-name>.
-The stored profile includes a display name and the unchanged v4 campaign.
+The profile envelope remains v1; its campaign now uses v5, including route best
+energy and the active checkpoint. Valid published v4 campaigns migrate with
+all quiz rewards, questions and reviews preserved. Previously reached routes
+are marked skipped (zero energy), so returning players are never relocked.
 Switch player saves the current adventure before opening the player screen.
 Each name has separate progress. Reset requires confirmation and affects only
 the current player's named save, never other players or older unnamed saves.
@@ -105,7 +120,9 @@ The bank covers those skills with original exercises, not a reproduction of
 the official assessments. It remains a Module 1 game; later strings, OOP,
 file/OS/calendar/datetime topics and the rest of the full-course exam are not
 included. Question IDs, topic placement, correct-option positions, 19 gates,
-and save schemas are unchanged so existing adventure progress can resume.
+are unchanged. This release upgrades only the campaign save schema and
+accepts existing v4 campaigns; older v6 code cannot read new v5 campaign saves.
+Local and public origins keep separate saves; progress does not sync.
 Course scope: https://www.netacad.com/courses/python-essentials-2?courseLang=en-US
 Historical pip search questions explicitly explain the retired PyPI service.
 Questions distinguish modern pip behavior, regular/namespace packages, and
@@ -116,15 +133,17 @@ TESTING
 Python tests execute deterministic output examples in fresh interpreters,
 check multifile modules in isolated directories, and validate the HTTP server.
 With the server running, execute in browser developer tools:
-    const bank = await (await fetch('questions.json?v=6')).json();
-    const { runTests } = await import('./engine.test.js?v=6');
+    const bank = await (await fetch('questions.json?v=7')).json();
+    const { runTests } = await import('./engine.test.js?v=7');
     console.table(runTests(bank));
-    const { runRendererTests } = await import('./renderer.test.js?v=6');
+    const { runRendererTests } = await import('./renderer.test.js?v=7');
     console.table(await runRendererTests(bank));
-    const { runCampaignTests } = await import('./campaign.test.js?v=6');
+    const { runCampaignTests } = await import('./campaign.test.js?v=7');
     console.table(await runCampaignTests(bank));
-    const { runProfileTests } = await import('./profiles.test.js?v=6');
+    const { runProfileTests } = await import('./profiles.test.js?v=7');
     console.table(await runProfileTests(bank));
+    const { runArcadeTests } = await import('./arcade.test.js?v=7');
+    console.table(await runArcadeTests());
 Every result should have passed: true. Tests cover retries, exact star
 thresholds, stage coverage, review scoring, replay rewards, save validation,
 full campaign completion, walking/jumping/landing, and code-rendering safety.
@@ -132,6 +151,10 @@ The random spread exercise is checked exhaustively over all 27 ordered draws.
 Multi-file rendering checks that final source lines stay inside code blocks.
 Profile tests check name validation, player separation, exact unfinished-state
 restore, completed-adventure restore, safe legacy adoption and storage errors.
+Arcade tests check energy, pulse cooldown/hits, stomp/side collisions, damage
+protection, checkpoint retry, moving-platform carry, route saves and switching.
+All 18 routes are simulated with actual movement/jump physics and pulse fire,
+and must reach a checkpoint and finish without shield damage or retries.
 
 FILES
 play.py           Standard-library loopback-only Python HTTP launcher.
@@ -140,6 +163,7 @@ engine.js         Question retry/review and first-attempt scoring rules.
 campaign.js       Challenge groups, unlocks, stars, levels and campaign saves.
 profiles.js       Required player names and independent localStorage saves.
 world.js          Original Canvas 2D art, movement, gates and input controls.
+arcade.js         Progressive platform routes, hazards, shields and energy.
 renderer.js       Safe code/text formatting and syntax colors.
 app.js            Browser UI, dialogs and local progress persistence.
 index.html        Accessible adventure page.
@@ -149,3 +173,4 @@ engine.test.js    Browser question-engine tests.
 renderer.test.js  Browser code-rendering tests.
 campaign.test.js  Browser challenge-progression and movement tests.
 profiles.test.js  Browser named-save and migration tests.
+arcade.test.js    Browser arcade collision and physical reachability tests.

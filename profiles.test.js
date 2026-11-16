@@ -1,6 +1,6 @@
 export async function runProfileTests(bank) {
-  const { Profiles, playerName, profileKey, LEGACY_KEY } = await import("./profiles.js?v=6");
-  const { Campaign, CHALLENGES } = await import("./campaign.js?v=6");
+  const { Profiles, playerName, profileKey, LEGACY_KEY } = await import("./profiles.js?v=7");
+  const { Campaign, CHALLENGES } = await import("./campaign.js?v=7");
   const results = [];
   const assert = (value, message) => { if (!value) throw new Error(message); };
   const throws = action => {
@@ -108,6 +108,22 @@ export async function runProfileTests(bank) {
     const restored = new Profiles(storage, bank).load("CASTLE PLAYER").campaign;
     assert(restored.completed === 19 && restored.totalStars === 57 && restored.level === 12, "Completed adventure restarted");
     assert(restored.active === null && restored.learned === 133, "Completion not preserved");
+  });
+  test("route checkpoints are player-specific and impossible starting energy is rejected", () => {
+    const storage = memory(), profiles = new Profiles(storage, bank), campaign = new Campaign(bank);
+    clear(campaign);
+    campaign.beginTrail(0); campaign.checkpointTrail(3);
+    profiles.save("Route Player", campaign);
+    profiles.save("Other Runner", new Campaign(bank));
+    const restored = profiles.load("route player").campaign;
+    assert(restored.trail.half && restored.trail.collected === 3 && !restored.canEnter(1), "Checkpoint or route gate lost");
+    assert(profiles.load("Other Runner").campaign.trail === null, "Route leaked across profiles");
+    const key = profileKey("Route Player"), record = JSON.parse(storage.getItem(key));
+    record.campaign.trail = { index: 0, half: false, collected: 63 };
+    const broken = JSON.stringify(record);
+    storage.setItem(key, broken);
+    throws(() => profiles.load("Route Player"));
+    assert(storage.getItem(key) === broken, "Broken route save was overwritten");
   });
   return results;
 }

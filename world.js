@@ -1,9 +1,9 @@
-import { CHALLENGES, starsFor } from "./campaign.js?v=6";
+import { CHALLENGES, starsFor } from "./campaign.js?v=7";
+import { Trail, gateX, GATE_SPACING } from "./arcade.js?v=7";
 
 export const GROUND = 340;
-export const WORLD_WIDTH = 160 + CHALLENGES.length * 360;
+export const WORLD_WIDTH = 160 + CHALLENGES.length * GATE_SPACING;
 const HEIGHT = 420;
-const gateX = index => 160 + index * 360;
 const REGIONS = [
   { name: "SUNRISE MEADOW", sky: "#a4dfef", haze: "#e0f1de", hill: "#87b996", front: "#4f9274", grass: "#70c46c", soil: "#735844" },
   { name: "EMERALD WOODS", sky: "#b3dcca", haze: "#e3e9bc", hill: "#76a998", front: "#3e796a", grass: "#85ba5c", soil: "#665442" },
@@ -24,7 +24,7 @@ export class Player {
     this.walk = 0;
   }
 
-  step(dt, input, platforms = []) {
+  step(dt, input, platforms = [], pits = []) {
     dt = Math.min(Math.max(dt, 0), 0.05);
     const direction = Number(Boolean(input.right)) - Number(Boolean(input.left));
     if (direction) { this.facing = direction; this.walk += dt * 12; }
@@ -37,8 +37,10 @@ export class Player {
     this.grounded = false;
     const floors = platforms.filter(p => this.x + this.width > p.x && this.x < p.x + p.width &&
       bottom <= p.y && this.y + this.height >= p.y && this.vy >= 0).map(p => p.y);
-    const floor = floors.length ? Math.min(GROUND, ...floors) : GROUND;
-    if (this.y + this.height >= floor) {
+    const center = this.x + this.width / 2;
+    const ground = pits.some(p => center > p.x && center < p.x + p.width) ? Infinity : GROUND;
+    const floor = floors.length ? Math.min(ground, ...floors) : ground;
+    if (bottom <= floor && this.y + this.height >= floor && this.vy >= 0) {
       this.y = floor - this.height;
       this.vy = 0;
       this.grounded = true;
@@ -60,13 +62,15 @@ function star(ctx, x, y, size, color) {
 }
 
 export class World {
-  constructor(canvas, campaign, enter, nearby) {
+  constructor(canvas, campaign, enter, nearby, arcadeChanged = () => {}) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
     if (!this.ctx) throw new Error("The 2D world could not initialize.");
     this.campaign = campaign;
     this.enter = enter;
     this.nearby = nearby;
+    this.arcadeChanged = arcadeChanged;
+    this.trail = null;
     this.player = new Player();
     this.keys = {};
     this.paused = false;
@@ -85,11 +89,11 @@ export class World {
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(canvas);
     this.resize();
-    this.travelTo(Math.min(campaign.completed, CHALLENGES.length - 1));
+    this.setCampaign(campaign);
     this.frame = time => {
       const dt = this.lastTime ? (time - this.lastTime) / 1000 : 0;
       this.lastTime = time;
-      if (!this.paused && !document.hidden) this.player.step(dt, this.keys, this.platforms);
+      if (!this.paused && !document.hidden) this.step(dt);
       this.camera = Math.max(0, Math.min(WORLD_WIDTH - this.width, this.player.x - this.width * 0.4));
       const index = this.nearest();
       if (index !== this.lastNearby) { this.lastNearby = index; this.nearby(index); }
@@ -110,6 +114,62 @@ export class World {
 
   clearKeys() { this.keys = {}; this.player.jumpHeld = false; }
   pause(value) { this.paused = value; this.clearKeys(); }
+  setCampaign(campaign) {
+    this.campaign = campaign;
+    this.trail = null;
+    this.lastHUD = "";
+    this.lastNearby = undefined;
+    let gate = Math.min(campaign.completed, CHALLENGES.length - 1);
+    if (!campaign.canEnter(gate)) gate = Math.max(0, gate - 1);
+    this.travelTo(campaign.active?.challenge ?? gate);
+    if (campaign.trail) {
+      this.trail = new Trail(campaign.trail.index, GROUND, campaign.trail);
+      this.trail.respawn(this.player);
+    }
+  }
+  beginTrail(index) {
+    this.campaign.beginTrail(index);
+    this.trail = new Trail(index, GROUND);
+    this.trail.respawn(this.player);
+    this.clearKeys();
+    this.lastHUD = "";
+    this.arcadeChanged("start", this.trail);
+  }
+  skipTrail(index) {
+    this.campaign.finishTrail(index, 0);
+    this.trail = null;
+    this.travelTo(index + 1);
+    this.arcadeChanged("skip", null);
+  }
+  step(dt) {
+    if (this.trail) {
+      const trail = this.trail;
+      trail.beforeStep(dt, this.player);
+      this.player.step(dt, this.keys, trail.platforms, trail.pits);
+      this.player.x = Math.max(trail.start, this.player.x);
+      const result = trail.afterStep(dt, this.player, this.keys);
+      if (result.checkpoint) {
+        this.campaign.checkpointTrail(trail.saved.collected);
+        this.arcadeChanged("checkpoint", trail);
+      }
+      if (result.finished) {
+        this.campaign.finishTrail(trail.index, trail.energy);
+        this.trail = null;
+        this.travelTo(trail.index + 1);
+        this.arcadeChanged("finish", trail);
+      } else {
+        const hud = [trail.energy, trail.hearts, trail.retries, trail.saved.half].join("/");
+        if (hud !== this.lastHUD) { this.lastHUD = hud; this.arcadeChanged("hud", trail); }
+      }
+      return;
+    }
+    this.player.step(dt, this.keys, this.platforms);
+    let gate = Math.min(this.campaign.completed, CHALLENGES.length - 1);
+    if (!this.campaign.canEnter(gate)) gate = Math.max(0, gate - 1);
+    this.player.x = Math.min(this.player.x, gateX(gate) + (this.campaign.completed === 19 ? 210 : 95));
+    if (!this.campaign.active && gate < 18 && this.campaign.awards[gate] &&
+        this.campaign.trails[gate] === null && this.player.x >= gateX(gate) + 85) this.beginTrail(gate);
+  }
   travelTo(index) {
     this.player.x = gateX(index) - 55;
     this.player.y = GROUND - this.player.height;
@@ -118,7 +178,8 @@ export class World {
     this.clearKeys();
   }
   nearest() {
-    const index = Math.round((this.player.x + this.player.width / 2 - 160) / 360);
+    if (this.trail) return null;
+    const index = Math.round((this.player.x + this.player.width / 2 - 160) / GATE_SPACING);
     return index >= 0 && index < CHALLENGES.length &&
       Math.abs(this.player.x + this.player.width / 2 - gateX(index)) < 80 ? index : null;
   }
@@ -130,7 +191,8 @@ export class World {
   key(event, pressed) {
     if (pressed && (this.paused || event.ctrlKey || event.metaKey || event.altKey)) return;
     const action = { ArrowLeft: "left", a: "left", A: "left", ArrowRight: "right", d: "right", D: "right",
-      " ": "jump", ArrowUp: "jump", w: "jump", W: "jump" }[event.key];
+      " ": "jump", ArrowUp: "jump", w: "jump", W: "jump",
+      x: "fire", X: "fire", j: "fire", J: "fire" }[event.key];
     if (action) { event.preventDefault(); this.keys[action] = pressed; }
     else if (event.key === "Enter" && pressed && !event.repeat) { event.preventDefault(); this.interact(); }
   }
@@ -160,7 +222,7 @@ export class World {
   draw(time) {
     const ctx = this.ctx;
     const regionIndex = CHALLENGES[Math.min(CHALLENGES.length - 1,
-      Math.max(0, Math.round((this.player.x - 160) / 360)))].region;
+      Math.max(0, Math.round((this.player.x - 160) / GATE_SPACING)))].region;
     const region = REGIONS[regionIndex];
     const sky = ctx.createLinearGradient(0, 0, 0, GROUND);
     sky.addColorStop(0, region.sky); sky.addColorStop(1, region.haze);
@@ -212,17 +274,22 @@ export class World {
     for (let x = Math.floor(this.camera / 32) * 32; x < this.camera + this.width; x += 32) {
       ctx.fillRect(x, GROUND + 28, 14, 5); ctx.fillRect(x + 17, GROUND + 55, 9, 5);
     }
-    this.platforms.forEach(p => {
+    if (this.trail) this.trail.pits.forEach(p => {
+      ctx.fillStyle = "#101b32"; ctx.fillRect(p.x, GROUND, p.width, HEIGHT - GROUND);
+      ctx.fillStyle = "#84dbe1"; ctx.fillRect(p.x - 4, GROUND, 4, 12);
+      ctx.fillRect(p.x + p.width, GROUND, 4, 12);
+    });
+    (this.trail ? this.trail.platforms : this.platforms).forEach(p => {
       if (p.x + p.width < this.camera || p.x > this.camera + this.width) return;
       ctx.fillStyle = region.soil; ctx.fillRect(p.x, p.y, p.width, 20);
-      ctx.fillStyle = region.grass; ctx.fillRect(p.x, p.y, p.width, 7);
+      ctx.fillStyle = p.amplitude ? "#78e0f2" : region.grass; ctx.fillRect(p.x, p.y, p.width, 7);
       ctx.fillStyle = "#afccb1"; ctx.fillRect(p.x + 48, p.y - 17, 4, 17);
       ctx.fillStyle = "#e2e5ba"; ctx.fillRect(p.x + 52, p.y - 17, 15, 9);
     });
     CHALLENGES.forEach((challenge, index) => {
       const x = gateX(index);
       if (x < this.camera - 90 || x > this.camera + this.width + 90) return;
-      const unlocked = index < this.campaign.unlocked;
+      const unlocked = this.campaign.canEnter(index);
       const award = this.campaign.awards[index];
       const stars = award ? starsFor(award.firstTry, challenge.ids.length) : 0;
       const arch = unlocked ? "#fff1bd" : "#a8adb5";
@@ -254,10 +321,65 @@ export class World {
         ctx.fillRect(x + 118, 151, 30, 17);
       }
     });
+    if (this.trail) this.drawTrail();
     this.drawPlayer(time);
     ctx.restore();
     ctx.textAlign = "left"; ctx.fillStyle = "#17263ce8"; ctx.fillRect(16, 16, 208, 30);
     ctx.fillStyle = "#fff4d9"; ctx.font = "bold 12px monospace"; ctx.fillText(region.name, 28, 36);
+    if (this.trail) {
+      ctx.fillStyle = "#17263ce8"; ctx.fillRect(16, 53, Math.min(310, this.width - 32), 30);
+      ctx.fillStyle = "#91f0e0"; ctx.fillText(`BYTE RUN ${this.trail.index + 1} / DIFFICULTY ${this.trail.difficulty}`, 28, 73);
+    }
+  }
+
+  drawTrail() {
+    const { ctx, trail } = this;
+    trail.cells.forEach(cell => {
+      if (trail.collected & cell.bit) return;
+      ctx.fillStyle = "#ffe9a0"; ctx.fillRect(cell.x - 9, cell.y - 7, 18, 14);
+      ctx.fillStyle = "#1b4453"; ctx.fillRect(cell.x - 3, cell.y - 4, 6, 8);
+      ctx.fillStyle = "#fff8dd"; ctx.fillRect(cell.x - 5, cell.y - 11, 10, 3);
+    });
+    trail.bots.forEach(bot => {
+      if (!bot.alive) return;
+      ctx.fillStyle = "#283251"; ctx.fillRect(bot.x + 3, bot.y + 16, 7, 8);
+      ctx.fillRect(bot.x + 18, bot.y + 16, 7, 8);
+      ctx.fillStyle = "#d97187"; ctx.fillRect(bot.x, bot.y + 3, 28, 16);
+      ctx.fillStyle = "#ffd39f"; ctx.fillRect(bot.x + 4, bot.y + 7, 20, 5);
+      ctx.fillStyle = "#192c42"; ctx.fillRect(bot.x + 7, bot.y + 7, 3, 5);
+      ctx.fillRect(bot.x + 18, bot.y + 7, 3, 5);
+      ctx.fillStyle = "#9ce8df"; ctx.fillRect(bot.x + 12, bot.y - 4, 4, 7);
+    });
+    trail.projectiles.forEach(shot => {
+      ctx.fillStyle = "#b2ffff"; ctx.fillRect(shot.x, shot.y, shot.width, shot.height);
+      ctx.fillStyle = "#4cc8e2"; ctx.fillRect(shot.x - shot.direction * 10, shot.y + 2, 10, 3);
+    });
+    trail.spikes.forEach(spike => {
+      ctx.fillStyle = "#ffd193";
+      for (let x = spike.x; x < spike.x + spike.width; x += 10) {
+        ctx.beginPath(); ctx.moveTo(x, GROUND); ctx.lineTo(x + 5, spike.y);
+        ctx.lineTo(x + 10, GROUND); ctx.closePath(); ctx.fill();
+      }
+    });
+    trail.fields.forEach(field => {
+      ctx.fillStyle = field.active ? "#ffac89" : "#75beab";
+      ctx.fillRect(field.x - 4, field.y - 6, field.width + 8, 6);
+      ctx.fillRect(field.x - 4, GROUND - 5, field.width + 8, 5);
+      if (field.active) {
+        ctx.fillStyle = "#ffca9277"; ctx.fillRect(field.x, field.y, field.width, field.height);
+        ctx.fillStyle = "#ffefd2"; ctx.fillRect(field.x + 10, field.y, 4, field.height);
+      }
+      ctx.fillStyle = "#17263c"; ctx.font = "bold 10px monospace"; ctx.textAlign = "center";
+      ctx.fillText(field.active ? "ZAP" : "OFF", field.x + field.width / 2, field.y - 12);
+    });
+    ctx.fillStyle = "#fff1bd"; ctx.fillRect(trail.checkpointX + 12, GROUND - 75, 4, 75);
+    ctx.fillStyle = trail.saved.half ? "#78e3bd" : "#ffe2a0";
+    ctx.fillRect(trail.checkpointX + 16, GROUND - 75, 36, 20);
+    ctx.fillStyle = "#17263c"; ctx.font = "bold 10px monospace"; ctx.textAlign = "left";
+    ctx.fillText("SAVE", trail.checkpointX + 18, GROUND - 60);
+    ctx.fillStyle = "#17263ce8"; ctx.fillRect(trail.end - 55, GROUND - 65, 110, 24);
+    ctx.fillStyle = "#b6f0d4"; ctx.font = "bold 11px monospace"; ctx.textAlign = "center";
+    ctx.fillText("NEXT QUIZ >", trail.end, GROUND - 49);
   }
 
   drawPlayer(time) {
@@ -265,6 +387,7 @@ export class World {
     const moving = !this.paused && (this.keys.left || this.keys.right) && p.grounded;
     const stride = moving ? Math.sin(p.walk) * 4 : 0;
     const x = Math.round(p.x), y = Math.round(p.y);
+    ctx.globalAlpha = this.trail?.invulnerable > 0 ? 0.65 : 1;
     ctx.fillStyle = "#0003"; ctx.fillRect(x - 2, GROUND - 4, 32, 5);
     ctx.fillStyle = "#213851"; ctx.fillRect(x + 3, y + 32, 8, 9 + stride);
     ctx.fillRect(x + 17, y + 32, 8, 9 - stride);
@@ -278,8 +401,13 @@ export class World {
     ctx.fillStyle = "#243b50"; ctx.fillRect(x + (p.facing > 0 ? 20 : 7), y + 9, 3, 4);
     ctx.fillStyle = "#3c7084"; ctx.fillRect(x + 4, y, 23, 7);
     ctx.fillRect(x + (p.facing > 0 ? 20 : -1), y + 4, 12, 4);
+    if (this.trail) {
+      ctx.fillStyle = "#76e2ea"; ctx.fillRect(x + (p.facing > 0 ? 23 : -8), y + 20, 13, 7);
+      ctx.fillStyle = "#213851"; ctx.fillRect(x + (p.facing > 0 ? 24 : -4), y + 27, 5, 5);
+    }
     if (this.campaign.completed === CHALLENGES.length) {
       star(ctx, x + 14, y - 15 + Math.sin(time * 2) * 2, 8, "#ffe69b");
     }
+    ctx.globalAlpha = 1;
   }
 }

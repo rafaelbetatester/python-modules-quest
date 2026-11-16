@@ -1,4 +1,4 @@
-import { Quiz } from "./engine.js?v=6";
+import { Quiz } from "./engine.js?v=7";
 
 const range = (start, end) => Array.from({ length: end - start }, (_, i) => start + i);
 const stage = (name, region, practice, ids) => ({ name, region, practice, ids });
@@ -46,6 +46,8 @@ export class Campaign {
     this.bank = bank;
     this.awards = CHALLENGES.map(() => null);
     this.active = null;
+    this.trails = CHALLENGES.slice(1).map(() => null);
+    this.trail = null;
   }
 
   get completed() { return this.awards.filter(Boolean).length; }
@@ -58,9 +60,35 @@ export class Campaign {
   get learned() {
     return this.awards.reduce((sum, award, i) => sum + (award ? CHALLENGES[i].ids.length : 0), 0);
   }
+  canEnter(index) {
+    return Number.isInteger(index) && index >= 0 && index < this.unlocked &&
+      (index === 0 || Boolean(this.awards[index]) || this.trails[index - 1] !== null);
+  }
+  validateTrail(index) {
+    if (!Number.isInteger(index) || index < 0 || index >= this.trails.length ||
+        !this.awards[index] || this.active) throw new Error("Clear its quiz before playing this route.");
+  }
+  beginTrail(index) {
+    this.validateTrail(index);
+    this.trail = { index, half: false, collected: 0 };
+  }
+  checkpointTrail(collected) {
+    if (!this.trail || !Number.isInteger(collected) || collected < 0 || collected > 63) {
+      throw new Error("Invalid route checkpoint.");
+    }
+    this.trail = { index: this.trail.index, half: true, collected };
+  }
+  finishTrail(index, energy) {
+    this.validateTrail(index);
+    if (!Number.isInteger(energy) || energy < 0 || energy > 6 ||
+        (this.trail && this.trail.index !== index)) throw new Error("Invalid route result.");
+    this.trails[index] = Math.max(this.trails[index] ?? 0, energy);
+    this.trail = null;
+  }
 
   start(index) {
     if (this.active) throw new Error("Finish or resume the current challenge first.");
+    if (this.trail) throw new Error("Finish or skip the platform route before starting a quiz.");
     if (!Number.isInteger(index) || index < 0 || index >= this.unlocked) {
       throw new Error("That challenge is locked.");
     }
@@ -82,13 +110,14 @@ export class Campaign {
   }
 
   save() {
-    return { version: 4, awards: this.awards.map(a => a ? { ...a } : null),
+    return { version: 5, awards: this.awards.map(a => a ? { ...a } : null),
+      trails: [...this.trails], trail: this.trail ? { ...this.trail } : null,
       active: this.active ? { challenge: this.active.challenge, quiz: this.active.quiz.save() } : null };
   }
 
   static restore(bank, text) {
     const data = JSON.parse(text);
-    if (!data || data.version !== 4 || !Array.isArray(data.awards) ||
+    if (!data || ![4, 5].includes(data.version) || !Array.isArray(data.awards) ||
         data.awards.length !== CHALLENGES.length) throw new Error("Unrecognized adventure save.");
     const campaign = new Campaign(bank);
     let gap = false;
@@ -106,6 +135,23 @@ export class Campaign {
       }
       const subset = CHALLENGES[index].ids.map(id => bank[id]);
       campaign.active = { challenge: index, quiz: Quiz.restore(subset, JSON.stringify(data.active.quiz)) };
+    }
+    if (data.version === 4) {
+      campaign.trails = campaign.trails.map((_, i) => i < campaign.completed ? 0 : null);
+    } else {
+      if (!Array.isArray(data.trails) || data.trails.length !== campaign.trails.length ||
+          data.trails.some((score, i) => score !== null &&
+            (!Number.isInteger(score) || score < 0 || score > 6 || !campaign.awards[i]))) {
+        throw new Error("Invalid saved route rewards.");
+      }
+      campaign.trails = [...data.trails];
+      if (data.trail !== null) {
+        const { index, half, collected } = data.trail ?? {};
+        campaign.validateTrail(index);
+        if (typeof half !== "boolean" || !Number.isInteger(collected) ||
+            collected < 0 || collected > 63 || (!half && collected !== 0)) throw new Error("Invalid saved route checkpoint.");
+        campaign.trail = { index, half, collected };
+      }
     }
     return campaign;
   }

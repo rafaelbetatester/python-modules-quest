@@ -14,6 +14,7 @@ FILES = {
     "/questions.json", "/engine.test.js", "/renderer.js", "/renderer.test.js",
     "/campaign.js", "/world.js", "/campaign.test.js",
     "/profiles.js", "/profiles.test.js",
+    "/arcade.js", "/arcade.test.js",
 }
 
 

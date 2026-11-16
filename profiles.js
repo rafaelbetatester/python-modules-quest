@@ -1,4 +1,4 @@
-import { Campaign } from "./campaign.js?v=6";
+import { Campaign } from "./campaign.js?v=7";
 
 export const LEGACY_KEY = "python-modules-quest-v4";
 const PREFIX = "python-modules-quest-profile-v1:";
