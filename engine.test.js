@@ -1,4 +1,4 @@
-import { Quiz } from "./engine.js?v=5";
+import { Quiz } from "./engine.js?v=6";
 
 export function runTests(bank) {
   const results = [];

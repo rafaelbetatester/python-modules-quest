@@ -1,7 +1,7 @@
-import { Campaign, CHALLENGES, starsFor } from "./campaign.js?v=5";
-import { World } from "./world.js?v=5";
-import { renderQuestion, renderOption } from "./renderer.js?v=5";
-import { Profiles, playerName } from "./profiles.js?v=5";
+import { Campaign, CHALLENGES, starsFor } from "./campaign.js?v=6";
+import { World } from "./world.js?v=6";
+import { renderQuestion, renderOption } from "./renderer.js?v=6";
+import { Profiles, playerName } from "./profiles.js?v=6";
 
 const $ = id => document.getElementById(id);
 const letters = "ABCD";
@@ -343,7 +343,7 @@ function activatePlayer(loaded, temporary) {
 }
 
 async function start() {
-  const response = await fetch("questions.json?v=5");
+  const response = await fetch("questions.json?v=6");
   if (!response.ok) throw new Error(`Question bank request failed (${response.status}).`);
   bank = await response.json();
   if (!Array.isArray(bank) || bank.length !== 133 || bank.some(q =>

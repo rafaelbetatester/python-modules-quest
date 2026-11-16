@@ -1,6 +1,6 @@
 export async function runRendererTests(bank) {
   const results = [];
-  const { renderQuestion, renderOption } = await import("./renderer.js?v=5");
+  const { renderQuestion, renderOption } = await import("./renderer.js?v=6");
   function assert(value, message) {
     if (!value) throw new Error(message);
   }
@@ -45,6 +45,14 @@ export async function runRendererTests(bank) {
     assert(blocks.length === 2, "Source files not separated");
     assert(blocks[0].textContent === "print('load')\nready = True", "First source file wrong");
     assert(blocks[1].textContent === "import status\nimport status\nprint(status.ready)", "Second source file wrong");
+  });
+  test("Shared-state tracing keeps the final print inside the second source block", () => {
+    const node = body();
+    const prompt = "Both files are on the import path. What does audit.py print?\nstock.py:\nprint('init')\ncount = 2\n\naudit.py:\nfrom stock import count\nimport stock\nstock.count += 3\nprint(count, stock.count)";
+    renderQuestion(node, prompt, 104);
+    const blocks = node.querySelectorAll("pre code");
+    assert(blocks.length === 2, "Source files not separated");
+    assert(blocks[1].textContent === "from stock import count\nimport stock\nstock.count += 3\nprint(count, stock.count)", "Final source line was formatted as prose");
   });
   test("Package trees leave the follow-up question as prose", () => {
     const node = body();

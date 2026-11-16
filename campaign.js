@@ -1,4 +1,4 @@
-import { Quiz } from "./engine.js?v=5";
+import { Quiz } from "./engine.js?v=6";
 
 const range = (start, end) => Array.from({ length: end - start }, (_, i) => start + i);
 const stage = (name, region, practice, ids) => ({ name, region, practice, ids });

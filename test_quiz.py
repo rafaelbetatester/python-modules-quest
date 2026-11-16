@@ -6,6 +6,10 @@ import subprocess
 import sys
 import re
 import tempfile
+import io
+from itertools import product
+from contextlib import redirect_stdout
+from unittest.mock import patch
 from collections import Counter
 from pathlib import Path
 from http.server import ThreadingHTTPServer
@@ -64,10 +68,10 @@ class QuestionTests(unittest.TestCase):
     def test_new_bank_uses_separate_progress_and_asset_versions(self):
         app = (ROOT / "app.js").read_text(encoding="utf-8")
         html = (ROOT / "index.html").read_text(encoding="utf-8")
-        self.assertIn('profiles.js?v=5', app)
-        self.assertIn('questions.json?v=5', app)
-        self.assertIn('app.js?v=5', html)
-        self.assertIn('renderer.js?v=5', app)
+        self.assertIn('profiles.js?v=6', app)
+        self.assertIn('questions.json?v=6', app)
+        self.assertIn('app.js?v=6', html)
+        self.assertIn('renderer.js?v=6', app)
         self.assertIn('id="player-form"', html)
         self.assertIn('id="player-name"', html)
         self.assertIn('id="switch-player"', html)
@@ -130,6 +134,19 @@ class QuestionTests(unittest.TestCase):
                 self.assertEqual(result.stdout.strip(), options[answer])
             checked += 1
         self.assertGreaterEqual(checked, 2)
+
+    def test_random_spread_question_covers_all_possible_outputs(self):
+        questions = json.loads((ROOT / "questions.json").read_text(encoding="utf-8"))
+        _, prompt, options, answer, _, _ = questions[108]
+        code = prompt.split("\n", 1)[1]
+        outputs = set()
+        for draws in product(range(2, 11, 4), repeat=3):
+            output = io.StringIO()
+            with patch("random.randrange", side_effect=draws), redirect_stdout(output):
+                exec(code, {})
+            outputs.add(int(output.getvalue().strip()))
+        self.assertEqual(outputs, {0, 4, 8})
+        self.assertEqual(set(map(int, re.findall(r"\d+", options[answer]))), outputs)
 
 
 class ServerTests(unittest.TestCase):

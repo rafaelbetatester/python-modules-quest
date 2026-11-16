@@ -91,12 +91,21 @@ for unsaved sessions to avoid losing in-memory progress.
 CONTENT AND PROVENANCE
 100 core questions: 20 imports, 14 modules, 10 packages, 18 math, 12 random,
 10 platform and 16 pip. Plus 33 chapter/completion-topic original exercises.
-The adventure improves twelve assessment-topic exercises with more plausible
-distractors, realistic scenarios and additional namespace/code tracing.
+The v6 refresh improves 23 exercises with plausible, often valid-code or
+valid-command distractors, multi-step namespace tracing, wildcard collisions,
+shared module state versus separately imported values, and random endpoints
+and return types. It also covers the Cheese Shop nickname's Monty Python
+origin. Multi-file snippets remain separately formatted.
 Original practice, not official questions and not copied or closely reworded
-assessments. The question bank covers the Module 1 chapters, chapter quizzes
-and completion-test topics previously inspected in the user's shared browser.
-It does not include later Python Essentials 2 modules or the full-course exam.
+assessments. In the shared authenticated course browser, all four Module 1
+chapter quizzes (15 prompts), the Module 1 completion test (18 items), and
+Module 1-related topics displayed on the full-course Final Test page were
+reviewed. No Final Test attempt was started and no assessment was submitted.
+The bank covers those skills with original exercises, not a reproduction of
+the official assessments. It remains a Module 1 game; later strings, OOP,
+file/OS/calendar/datetime topics and the rest of the full-course exam are not
+included. Question IDs, topic placement, correct-option positions, 19 gates,
+and save schemas are unchanged so existing adventure progress can resume.
 Course scope: https://www.netacad.com/courses/python-essentials-2?courseLang=en-US
 Historical pip search questions explicitly explain the retired PyPI service.
 Questions distinguish modern pip behavior, regular/namespace packages, and
@@ -107,18 +116,20 @@ TESTING
 Python tests execute deterministic output examples in fresh interpreters,
 check multifile modules in isolated directories, and validate the HTTP server.
 With the server running, execute in browser developer tools:
-    const bank = await (await fetch('questions.json?v=5')).json();
-    const { runTests } = await import('./engine.test.js?v=5');
+    const bank = await (await fetch('questions.json?v=6')).json();
+    const { runTests } = await import('./engine.test.js?v=6');
     console.table(runTests(bank));
-    const { runRendererTests } = await import('./renderer.test.js?v=5');
+    const { runRendererTests } = await import('./renderer.test.js?v=6');
     console.table(await runRendererTests(bank));
-    const { runCampaignTests } = await import('./campaign.test.js?v=5');
+    const { runCampaignTests } = await import('./campaign.test.js?v=6');
     console.table(await runCampaignTests(bank));
-    const { runProfileTests } = await import('./profiles.test.js?v=5');
+    const { runProfileTests } = await import('./profiles.test.js?v=6');
     console.table(await runProfileTests(bank));
 Every result should have passed: true. Tests cover retries, exact star
 thresholds, stage coverage, review scoring, replay rewards, save validation,
 full campaign completion, walking/jumping/landing, and code-rendering safety.
+The random spread exercise is checked exhaustively over all 27 ordered draws.
+Multi-file rendering checks that final source lines stay inside code blocks.
 Profile tests check name validation, player separation, exact unfinished-state
 restore, completed-adventure restore, safe legacy adoption and storage errors.
 
