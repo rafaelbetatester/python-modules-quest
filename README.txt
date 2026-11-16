@@ -58,16 +58,35 @@ CHALLENGES AND STARS
   Displayed snippets and intentionally incorrect distractors never execute.
 
 SAVED PROGRESS
-Adventure progress automatically saves locally under python-modules-quest-v4.
-This new campaign does not reinterpret old quiz answers as challenge scores.
-v1, v2 and v3 keys remain untouched, including when resetting the adventure.
-Return to the same browser and origin to resume. Different hostnames, ports,
-or local/public URLs have separate progress. Multiple tabs do not synchronize.
-Private browsing or clearing site data can remove progress. Storage failures
-are explicitly displayed. Invalid saves remain untouched; temporary play is
-available, or Reset adventure can replace the invalid adventure save.
-Reset adventure requires confirmation and resets stars, levels and progress.
-No saved data is sent to a service.
+Enter a player name before starting. The player screen appears on every visit,
+with the most recently used name prefilled. Use that same name to resume stars,
+level, completed gates, and the exact unfinished question/review. Completed
+adventures remain completed; returning never automatically starts over.
+Names have 2-24 characters, start with a letter or number, and can contain
+letters, numbers, spaces, dots, underscores and hyphens. Names ignore case;
+leading/trailing spaces and repeated whitespace are normalized.
+Named saves use python-modules-quest-profile-v1:<encoded-lowercase-name>.
+The stored profile includes a display name and the unchanged v4 campaign.
+Switch player saves the current adventure before opening the player screen.
+Each name has separate progress. Reset requires confirmation and affects only
+the current player's named save, never other players or older unnamed saves.
+If an unclaimed v4 adventure exists, the player screen offers to copy it to a
+new player. This is checked by default; uncheck it to start that player fresh.
+Existing named profiles always resume their own progress rather than importing
+old progress. Once claimed, the old adventure is not offered to another name.
+The original v4 data is never deleted. v1, v2 and v3 saves also remain untouched;
+those older linear quizzes cannot be interpreted as adventure star rewards.
+Profiles are local browser identities, NOT password-protected authentication.
+Anyone using the same browser and name can open a profile. No login credentials
+are requested, and usernames/progress are not sent to any service.
+Return to the same browser and website origin to resume. Different hostnames,
+ports, local/public URLs, or devices have separate progress. Multiple tabs do
+not synchronize. Private browsing and clearing website data can erase saves.
+Storage errors and corrupt profiles are explicitly displayed, never silently
+replaced with a fresh saved game. You can correct the name/storage problem or
+explicitly choose a temporary new adventure that leaves stored data untouched.
+Temporary adventures do not save, even after resetting. Switching is disabled
+for unsaved sessions to avoid losing in-memory progress.
 
 CONTENT AND PROVENANCE
 100 core questions: 20 imports, 14 modules, 10 packages, 18 math, 12 random,
@@ -88,22 +107,27 @@ TESTING
 Python tests execute deterministic output examples in fresh interpreters,
 check multifile modules in isolated directories, and validate the HTTP server.
 With the server running, execute in browser developer tools:
-    const bank = await (await fetch('questions.json?v=4')).json();
-    const { runTests } = await import('./engine.test.js?v=4');
+    const bank = await (await fetch('questions.json?v=5')).json();
+    const { runTests } = await import('./engine.test.js?v=5');
     console.table(runTests(bank));
-    const { runRendererTests } = await import('./renderer.test.js?v=4');
+    const { runRendererTests } = await import('./renderer.test.js?v=5');
     console.table(await runRendererTests(bank));
-    const { runCampaignTests } = await import('./campaign.test.js?v=4');
+    const { runCampaignTests } = await import('./campaign.test.js?v=5');
     console.table(await runCampaignTests(bank));
+    const { runProfileTests } = await import('./profiles.test.js?v=5');
+    console.table(await runProfileTests(bank));
 Every result should have passed: true. Tests cover retries, exact star
 thresholds, stage coverage, review scoring, replay rewards, save validation,
 full campaign completion, walking/jumping/landing, and code-rendering safety.
+Profile tests check name validation, player separation, exact unfinished-state
+restore, completed-adventure restore, safe legacy adoption and storage errors.
 
 FILES
 play.py           Standard-library loopback-only Python HTTP launcher.
 questions.json    Original 133-question bank.
 engine.js         Question retry/review and first-attempt scoring rules.
 campaign.js       Challenge groups, unlocks, stars, levels and campaign saves.
+profiles.js       Required player names and independent localStorage saves.
 world.js          Original Canvas 2D art, movement, gates and input controls.
 renderer.js       Safe code/text formatting and syntax colors.
 app.js            Browser UI, dialogs and local progress persistence.
@@ -113,3 +137,4 @@ test_quiz.py      Question bank and launcher tests.
 engine.test.js    Browser question-engine tests.
 renderer.test.js  Browser code-rendering tests.
 campaign.test.js  Browser challenge-progression and movement tests.
+profiles.test.js  Browser named-save and migration tests.

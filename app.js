@@ -1,30 +1,36 @@
-import { Campaign, CHALLENGES, starsFor } from "./campaign.js?v=4";
-import { World } from "./world.js?v=4";
-import { renderQuestion, renderOption } from "./renderer.js?v=4";
+import { Campaign, CHALLENGES, starsFor } from "./campaign.js?v=5";
+import { World } from "./world.js?v=5";
+import { renderQuestion, renderOption } from "./renderer.js?v=5";
+import { Profiles, playerName } from "./profiles.js?v=5";
 
 const $ = id => document.getElementById(id);
-const KEY = "python-modules-quest-v4";
 const letters = "ABCD";
 let campaign;
 let world;
 let bank;
+let profiles;
+let player = "";
+let temporaryPlayer = false;
 let receipt = null;
 let storageAvailable = true;
 let nearbyIndex = 0;
 
 function persist() {
-  if (!storageAvailable) return;
+  if (!storageAvailable || !player) return false;
   try {
-    localStorage.setItem(KEY, JSON.stringify(campaign.save()));
-    $("save-status").textContent = "Adventure saved in this browser.";
+    profiles.save(player, campaign);
+    $("save-status").textContent = `Saved for ${player} in this browser.`;
+    return true;
   } catch (error) {
     storageAvailable = false;
     $("storage").textContent = `Progress cannot be saved: ${error.message}. Keep this tab open to continue.`;
     $("save-status").textContent = "Progress is not being saved.";
+    $("switch-player").disabled = true;
+    return false;
   }
 }
 
-function quiz() { return campaign.active?.quiz; }
+function quiz() { return campaign?.active?.quiz; }
 function currentId() { return CHALLENGES[campaign.active.challenge].ids[quiz().current.id]; }
 
 function hintText() {
@@ -96,6 +102,7 @@ function openDialog() {
 }
 
 function openChallenge(index) {
+  if (!player) return;
   if (index >= campaign.unlocked) {
     $("world-message").textContent = "This gate is locked. Complete the earlier challenges to open it.";
     return;
@@ -211,14 +218,14 @@ $("next").addEventListener("click", next);
 $("close-challenge").addEventListener("click", () => $("challenge-dialog").close());
 $("continue").addEventListener("click", () => $("challenge-dialog").close());
 $("challenge-dialog").addEventListener("close", () => {
-  world.pause(false);
+  world.pause($("player-dialog").open);
   renderWorld();
   $("world").focus({ preventScroll: true });
 });
 $("enter-gate").addEventListener("click", () => { if (nearbyIndex !== null) openChallenge(nearbyIndex); });
 $("resume").addEventListener("click", () => openChallenge(campaign.active.challenge));
 $("reset").addEventListener("click", () => {
-  if (!confirm("Reset adventure stars, levels and current challenge? Older quiz saves are kept.")) return;
+  if (!confirm(`Reset ${player}'s adventure stars, levels and current challenge? Other players and older saves are kept.`)) return;
   if ($("challenge-dialog").open) $("challenge-dialog").close();
   campaign = new Campaign(bank);
   world.campaign = campaign;
@@ -226,9 +233,36 @@ $("reset").addEventListener("click", () => {
   receipt = null;
   $("storage").textContent = "";
   $("world-message").textContent = "";
-  storageAvailable = true;
+  storageAvailable = !temporaryPlayer;
   persist();
+  $("switch-player").disabled = !storageAvailable;
   renderWorld();
+});
+$("player-dialog").addEventListener("cancel", event => event.preventDefault());
+$("switch-player").addEventListener("click", () => {
+  if (!persist()) return;
+  world.pause(true);
+  showPlayerScreen(true);
+});
+$("cancel-switch").addEventListener("click", () => {
+  $("player-dialog").close();
+  world.pause(false);
+  $("world").focus({ preventScroll: true });
+});
+$("player-form").addEventListener("submit", event => {
+  event.preventDefault();
+  try {
+    const name = playerName($("player-name").value);
+    const temporary = $("temporary-player").checked;
+    if (!profiles && !temporary) throw new Error("Browser storage is unavailable. Enable it, or choose temporary play.");
+    const loaded = temporary ? { name, campaign: new Campaign(bank), imported: false }
+      : profiles.load(name, $("import-legacy").checked);
+    if (!temporary) profiles.save(loaded.name, loaded.campaign, loaded.imported);
+    activatePlayer(loaded, temporary);
+  } catch (error) {
+    $("player-error").textContent = `Could not open this player: ${error.message}. Stored progress has not been reset. Try another name, fix browser storage, or choose temporary play.`;
+    $("temporary-choice").hidden = false;
+  }
 });
 document.addEventListener("keydown", event => {
   const activeQuiz = quiz();
@@ -245,44 +279,60 @@ document.addEventListener("keydown", event => {
   }
 });
 
-async function start() {
-  const response = await fetch("questions.json?v=4");
-  if (!response.ok) throw new Error(`Question bank request failed (${response.status}).`);
-  bank = await response.json();
-  if (!Array.isArray(bank) || bank.length !== 133 || bank.some(q =>
-    !Array.isArray(q) || q.length !== 6 || !Array.isArray(q[2]) || q[2].length !== 4 ||
-    !Number.isInteger(q[3]) || q[3] < 0 || q[3] > 3 ||
-    ![q[0], q[1], q[4], q[5], ...q[2]].every(s => typeof s === "string" && s.length))) {
-    throw new Error("The question bank is incomplete or invalid.");
-  }
-  let saved = null;
+function showPlayerScreen(switching = false) {
+  $("player-error").textContent = "";
+  $("temporary-player").checked = false;
+  $("temporary-choice").hidden = true;
+  $("cancel-switch").hidden = !player;
+  $("player-name").value = switching ? "" : player;
   try {
-    saved = localStorage.getItem(KEY);
-    if (saved === null && ["v1", "v2", "v3"].some(v => localStorage.getItem(`python-modules-quest-${v}`))) {
-      $("storage").textContent = "Welcome to the 2D adventure! Stars start fresh; your older quiz progress is kept separately.";
+    if (profiles) {
+      if (!switching) $("player-name").value = profiles.lastPlayer();
+      $("legacy-choice").hidden = !profiles.hasLegacy();
+      $("import-legacy").checked = true;
+    } else {
+      $("legacy-choice").hidden = true;
+      $("temporary-choice").hidden = false;
+      $("player-error").textContent = "Browser storage is unavailable. Enable it to save, or explicitly choose temporary play.";
     }
   } catch (error) {
-    storageAvailable = false;
-    $("storage").textContent = `Browser storage is unavailable: ${error.message}. Progress lasts only in this tab.`;
-    $("save-status").textContent = "Progress is not being saved.";
+    $("player-error").textContent = `Could not read player preferences: ${error.message}. Enter your name to try opening your saved profile.`;
+    $("legacy-choice").hidden = true;
+    $("temporary-choice").hidden = false;
   }
-  if (saved !== null) {
-    try { campaign = Campaign.restore(bank, saved); }
-    catch (error) {
-      storageAvailable = false;
-      $("storage").textContent = `Saved adventure could not be restored: ${error.message}. The saved data is left untouched. Play temporarily, or use Reset adventure to replace it.`;
-      $("save-status").textContent = "Progress is not being saved.";
-    }
+  if (!$("player-dialog").open) $("player-dialog").showModal();
+  $("player-name").focus();
+}
+
+function activatePlayer(loaded, temporary) {
+  campaign = loaded.campaign;
+  player = loaded.name;
+  receipt = null;
+  storageAvailable = !temporary;
+  temporaryPlayer = temporary;
+  $("storage").textContent = temporary ? "Temporary play: this adventure will not be saved. Keep this tab open."
+    : loaded.imported ? "Your previous unnamed adventure was copied to this player. Its original save is kept." : "";
+  $("save-status").textContent = temporary ? "Progress is not being saved." : `Saved for ${player} in this browser.`;
+  $("world-message").textContent = "";
+  $("current-player").textContent = player;
+  $("player-bar").hidden = false;
+  $("switch-player").disabled = temporary;
+  if (world) {
+    world.campaign = campaign;
+    world.travelTo(campaign.active?.challenge ?? Math.min(campaign.completed, CHALLENGES.length - 1));
+    world.pause(false);
+  } else {
+    world = new World($("world"), campaign, openChallenge, updateNearby);
+    world.bindControl($("move-left"), "left");
+    world.bindControl($("move-right"), "right");
+    world.bindControl($("jump"), "jump");
   }
-  campaign ??= new Campaign(bank);
-  world = new World($("world"), campaign, openChallenge, updateNearby);
-  world.bindControl($("move-left"), "left");
-  world.bindControl($("move-right"), "right");
-  world.bindControl($("jump"), "jump");
-  persist();
+  $("player-dialog").close();
+  $("game").inert = false;
   renderWorld();
   $("reset").disabled = false;
   $("hint").disabled = false;
+  $("world").focus({ preventScroll: true });
   if (campaign.active) {
     world.travelTo(campaign.active.challenge);
     if (quiz().done) {
@@ -292,8 +342,28 @@ async function start() {
   }
 }
 
+async function start() {
+  const response = await fetch("questions.json?v=5");
+  if (!response.ok) throw new Error(`Question bank request failed (${response.status}).`);
+  bank = await response.json();
+  if (!Array.isArray(bank) || bank.length !== 133 || bank.some(q =>
+    !Array.isArray(q) || q.length !== 6 || !Array.isArray(q[2]) || q[2].length !== 4 ||
+    !Number.isInteger(q[3]) || q[3] < 0 || q[3] > 3 ||
+    ![q[0], q[1], q[4], q[5], ...q[2]].every(s => typeof s === "string" && s.length))) {
+    throw new Error("The question bank is incomplete or invalid.");
+  }
+  try {
+    profiles = new Profiles(localStorage, bank);
+  } catch (error) {
+    $("storage").textContent = `Browser storage is unavailable: ${error.message}. Progress lasts only in this tab.`;
+  }
+  $("start-player").disabled = false;
+  showPlayerScreen();
+}
+
 start().catch(error => {
   $("storage").textContent = `The adventure could not start: ${error.message}. Reload the page, or run python play.py for local play.`;
   $("world-message").textContent = "Unable to load the adventure.";
   $("enter-gate").disabled = true;
+  $("game").inert = false;
 });

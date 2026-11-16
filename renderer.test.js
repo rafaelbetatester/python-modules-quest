@@ -1,6 +1,6 @@
 export async function runRendererTests(bank) {
   const results = [];
-  const { renderQuestion, renderOption } = await import("./renderer.js?v=4");
+  const { renderQuestion, renderOption } = await import("./renderer.js?v=5");
   function assert(value, message) {
     if (!value) throw new Error(message);
   }

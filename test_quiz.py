@@ -37,7 +37,7 @@ class QuestionTests(unittest.TestCase):
         )
 
     def test_browser_files_exist(self):
-        for name in ("index.html", "style.css", "app.js", "engine.js", "renderer.js", "campaign.js", "world.js"):
+        for name in ("index.html", "style.css", "app.js", "engine.js", "renderer.js", "campaign.js", "world.js", "profiles.js"):
             self.assertTrue((ROOT / name).is_file(), f"Missing browser file: {name}")
 
     def test_launcher_exists(self):
@@ -64,10 +64,13 @@ class QuestionTests(unittest.TestCase):
     def test_new_bank_uses_separate_progress_and_asset_versions(self):
         app = (ROOT / "app.js").read_text(encoding="utf-8")
         html = (ROOT / "index.html").read_text(encoding="utf-8")
-        self.assertIn('const KEY = "python-modules-quest-v4"', app)
-        self.assertIn('questions.json?v=4', app)
-        self.assertIn('app.js?v=4', html)
-        self.assertIn('renderer.js?v=4', app)
+        self.assertIn('profiles.js?v=5', app)
+        self.assertIn('questions.json?v=5', app)
+        self.assertIn('app.js?v=5', html)
+        self.assertIn('renderer.js?v=5', app)
+        self.assertIn('id="player-form"', html)
+        self.assertIn('id="player-name"', html)
+        self.assertIn('id="switch-player"', html)
         self.assertIn('id="world"', html)
         self.assertIn('id="challenge-list"', html)
         self.assertIn('id="question-body"', html)
@@ -157,7 +160,7 @@ class ServerTests(unittest.TestCase):
             self.assertEqual(response.headers.get_content_type(), "text/javascript")
 
     def test_adventure_resources_are_served(self):
-        for asset in ("campaign.js", "world.js", "campaign.test.js"):
+        for asset in ("campaign.js", "world.js", "campaign.test.js", "profiles.js", "profiles.test.js"):
             with urlopen(self.url + "/" + asset, timeout=5) as response:
                 self.assertEqual(response.headers.get_content_type(), "text/javascript")
 

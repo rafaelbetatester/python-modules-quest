@@ -1,4 +1,4 @@
-import { CHALLENGES, starsFor } from "./campaign.js?v=4";
+import { CHALLENGES, starsFor } from "./campaign.js?v=5";
 
 export const GROUND = 340;
 export const WORLD_WIDTH = 160 + CHALLENGES.length * 360;

@@ -13,6 +13,7 @@ FILES = {
     "/", "/index.html", "/style.css", "/app.js", "/engine.js",
     "/questions.json", "/engine.test.js", "/renderer.js", "/renderer.test.js",
     "/campaign.js", "/world.js", "/campaign.test.js",
+    "/profiles.js", "/profiles.test.js",
 }
 
 

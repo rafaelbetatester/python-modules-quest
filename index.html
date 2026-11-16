@@ -6,11 +6,11 @@
   <meta name="theme-color" content="#152b36">
   <title>Modules &amp; Packages Quest | Python Adventure</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="style.css?v=4">
-  <script type="module" src="app.js?v=4"></script>
+  <link rel="stylesheet" href="style.css?v=5">
+  <script type="module" src="app.js?v=5"></script>
 </head>
 <body>
-  <main>
+  <main id="game" inert>
     <header class="hero">
       <div>
         <div class="eyebrow">PYTHON ESSENTIALS 2 / MODULE 1</div>
@@ -19,6 +19,10 @@
       </div>
       <div class="hero-badge" aria-label="19 gates, 133 questions">19 GATES<br><span>133 QUESTIONS</span></div>
     </header>
+    <div id="player-bar" class="player-bar" hidden>
+      <span>Playing as <strong id="current-player"></strong></span>
+      <button id="switch-player" class="secondary" type="button">Switch player</button>
+    </div>
     <section class="dashboard" aria-label="Your adventure progress">
       <div><strong id="level">1</strong><span>Explorer level</span></div>
       <div><strong id="stars-count">0 / 57</strong><span>Mastery stars</span></div>
@@ -70,9 +74,35 @@
       <p class="small">133 original Module 1 practice questions. Not copied or official assessment questions.
         Original art; no accounts, analytics, or external game libraries.
         <a href="https://www.netacad.com/courses/python-essentials-2?courseLang=en-US" target="_blank" rel="noreferrer">Course scope</a>.
-        Older quiz progress is kept separately.</p>
+        Player profiles save only in this browser. Older quiz progress is kept separately.</p>
     </footer>
   </main>
+  <dialog id="player-dialog" class="card player-dialog" aria-labelledby="player-title">
+    <div class="eyebrow">YOUR NEXT ADVENTURE</div>
+    <h2 id="player-title">Who is playing?</h2>
+    <p>Use the same player name each time to resume your stars, level, and unfinished challenges.</p>
+    <form id="player-form">
+      <label for="player-name">Player name</label>
+      <input id="player-name" name="player" type="text" required minlength="2" maxlength="24"
+        autocomplete="username" autocapitalize="none" spellcheck="false" aria-describedby="player-help">
+      <p id="player-help">2&ndash;24 characters. Names are not case-sensitive.</p>
+      <label id="legacy-choice" class="profile-choice" hidden>
+        <input id="import-legacy" type="checkbox" checked>
+        Copy previous unnamed adventure progress to this new player. Existing players always resume their own saves.
+      </label>
+      <p id="player-error" class="notice" role="alert"></p>
+      <label id="temporary-choice" class="profile-choice" hidden>
+        <input id="temporary-player" type="checkbox">
+        Play a temporary new adventure without saving or altering stored progress.
+      </label>
+      <div class="actions">
+        <button id="start-player" type="submit" disabled>Continue adventure &rarr;</button>
+        <button id="cancel-switch" class="secondary" type="button" hidden>Back to current player</button>
+      </div>
+    </form>
+    <p class="profile-privacy">Local player profile, not password-protected login. Anyone using this browser and name can open it.
+      Saves do not sync across devices. Clearing website data or using private browsing can erase progress.</p>
+  </dialog>
   <dialog id="challenge-dialog" class="card" aria-labelledby="dialog-title">
     <div class="dialog-heading">
       <strong id="dialog-title">Challenge</strong>
