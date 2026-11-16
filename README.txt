@@ -1,112 +1,115 @@
-MODULES & PACKAGES QUEST
-133 original Python Essentials 2 Module 1-style practice questions.
+MODULES & PACKAGES QUEST / THE PYTHON TRAIL
+A 2D browser adventure for Python Essentials 2, Module 1.
+19 challenge gates / 133 original questions / 57 mastery stars.
 
 PUBLIC WEBSITE
 https://rafaelbetatester.github.io/python-modules-quest/
-Open this link to play or share it with learners. No Python installation is
-needed for the hosted version. Each browser keeps its own progress.
-GitHub Pages hosts the static files; the Python launcher is only for local play.
-GitHub may log visitor IP addresses for security purposes. The quiz itself
-has no accounts, analytics, or server-side progress collection.
+Share the game link. The hosted version needs no Python installation and does
+not depend on the author's computer. Each browser keeps its own progress.
+GitHub Pages hosts static files. GitHub may log visitor IP addresses for
+security; the game has no accounts, analytics or server-side progress.
 
-START
+LOCAL PLAY
 1. Install Python 3.10 or newer if needed.
-2. Extract this entire folder.
-3. Open a terminal in this folder and run:
-       python play.py
-   On Windows, py play.py also works if the Python launcher is installed.
-4. Your browser opens http://127.0.0.1:8765.
-   Keep the terminal open while playing; Ctrl+C stops the server.
+2. Extract the complete folder.
+3. In that folder run: python play.py
+   Windows users can also use: py play.py
+4. Your browser opens the printed loopback URL. Keep the terminal open.
+   Ctrl+C stops the server. Your saved browser progress remains.
+Do not open index.html directly. No pip installs or external libraries needed.
+If the port is busy: python play.py --port 8766
+To open the browser yourself: python play.py --no-browser
 
-No pip installs, accounts, or internet access are required.
-Do not open index.html directly: use the Python launcher.
-If the port is occupied: python play.py --port 8766
-To open the URL yourself: python play.py --no-browser
+EXPLORE
+Click or tap the scene to focus it. Arrow keys or A/D walk, Space jumps,
+and Enter opens the nearby gate. On-screen movement buttons also work with
+pointer/touch or a held Space/Enter key. Release controls to stop moving.
+The character travels through four original pixel-art regions: Sunrise
+Meadow, Emerald Woods, Crystal Coast and Starlight Summit.
+There are no enemies, lives, movement penalties or timers.
+Use the Challenge map for accessible play without walking.
+Background decorations are not collectibles. Stars are earned by learning.
+Reduced-motion preferences disable ambient floating effects.
 
-HOW TO PLAY
-- Click A/B/C/D or press the corresponding key.
-- Wrong answers stay on the same question and give a hint.
-- After multiple mistakes, remaining choices are highlighted in the hint.
-- You must answer correctly to continue; an explanation then appears.
-- Click Next or press Enter.
-- A question missed on its initial appearance returns after up to four other
-  questions. A missed review is scheduled again. A clean correct review clears it.
-- The final score counts FIRST-TRY answers across the 133-question bank.
-  Correcting a mistake still increases "Questions learned", not the first-try score.
-- Finish all 133 questions and every scheduled review to complete the quest.
-- Start over resets the game and shuffles question order.
-- For questions asking for two true statements, select the A/B/C/D option
-  containing the correct pair. The controls remain single-answer.
-- Each question is labeled Core practice, Module completion practice, or
-  the appropriate Chapter quiz practice.
-- Python snippets use syntax colors and preserved indentation. Source files
-  are separated into labeled blocks. File trees and terminal output have
-  distinct labels; statements remain normal numbered lists.
-- Wide code scrolls within its block on small screens. Code in answer choices
-  uses monospace formatting too. Snippets are displayed, never executed.
+CHALLENGES AND STARS
+- Each of the 19 gates owns 5-10 questions. Every bank question belongs to
+  exactly one gate; all 133 are covered without duplicate initial questions.
+- The first six gates cover chapter-quiz and completion-assessment skills
+  with original scenarios. Later gates provide deeper topic practice.
+- Each challenge shuffles its questions. Answer A/B/C/D with buttons or keys.
+- Wrong choices stay on the question, are disabled, and reveal a hint.
+- You must answer correctly before Next. Correct answers show explanations.
+- Missed questions return after up to four intervening questions. A failed
+  review is scheduled again. Clear all reviews to finish the challenge.
+- 3 stars: at least 90% of initial questions correct on their first attempt.
+  2 stars: at least 70%. Otherwise 1 star after completion.
+  Thresholds use exact fractions, not rounded displayed percentages.
+- Hints are available without a separate penalty. A wrong submitted choice
+  removes first-attempt credit. Reviews cannot inflate the original score.
+- Completing a gate unlocks the next. All 19 gates unlock after all are cleared.
+- Every five total stars raises your level: level = 1 + floor(stars / 5).
+  Maximum: 57 stars, level 12.
+- Replay gates to improve the best score. Worse/equal replays never remove
+  or duplicate earned stars. Replays do not inflate questions learned.
+- Return to world or Escape pauses an unfinished challenge. Resume it before
+  entering a different gate. Even an answered question awaiting Next is saved.
+- Syntax-colored snippets preserve source indentation and quotes. Multiple
+  files have separate blocks. Wide code scrolls inside its block on mobile.
+  Displayed snippets and intentionally incorrect distractors never execute.
 
 SAVED PROGRESS
-Progress saves automatically in this browser's local storage. Return using the
-same browser, hostname and port to resume. Changing the port or using localhost
-instead of 127.0.0.1 creates a different browser storage location.
-The public website and the local version have separate saved progress.
-The expanded bank uses its own v3 saved-progress key. Old v1 and v2 data is
-left untouched, but answers from those banks are not applied to the expanded
-question order. Returning learners see a notice explaining the fresh progress.
-Private browsing, storage restrictions, or clearing site data can remove progress.
-Storage errors appear on the page rather than being hidden.
-Use one quiz tab at a time: separate tabs do not synchronize their progress.
-No progress is sent to external services.
+Adventure progress automatically saves locally under python-modules-quest-v4.
+This new campaign does not reinterpret old quiz answers as challenge scores.
+v1, v2 and v3 keys remain untouched, including when resetting the adventure.
+Return to the same browser and origin to resume. Different hostnames, ports,
+or local/public URLs have separate progress. Multiple tabs do not synchronize.
+Private browsing or clearing site data can remove progress. Storage failures
+are explicitly displayed. Invalid saves remain untouched; temporary play is
+available, or Reset adventure can replace the invalid adventure save.
+Reset adventure requires confirmation and resets stars, levels and progress.
+No saved data is sent to a service.
 
-CONTENT
-100 core questions, preserving the previous course-aligned bank:
-20 imports/namespace; 14 user modules; 10 packages; 18 math; 12 random;
-10 platform; 16 pip.
-Plus 18 original completion-test-style practice questions and 15 original
-chapter-quiz-style practice questions: 4 for Section 1, 4 for Section 2,
-3 for Section 3, and 4 for Section 4.
-Code tracing, name collisions, import aliases, repeated imports, shared module
-state, __name__, __pycache__, shebangs, underscore conventions, sys.path, ZIP
-imports, package initialization, qualified imports, trigonometry, logarithms,
-rounding, pseudorandom ranges, sampling, platform data, and package management.
-Questions are original practice material, not official or copied exam questions.
-Public scope reference:
-https://www.netacad.com/courses/python-essentials-2?courseLang=en-US
-The refreshed bank was aligned to the four Module 1 chapters, chapter quizzes,
-and module-test review that the user shared in their browser. Source questions
-were not copied or closely reworded; scenarios, code, options, hints, and
-explanations are original. Login-protected course content is not distributed.
-The chapter quizzes and 18-item completed module-test review were revisited
-through the user's shared browser to check coverage. No test attempt was
-started or submitted.
-Legacy pip search behavior is explicitly labeled historical: PyPI's XML-RPC
-search has been retired. Modern installation defaults and namespace-package
-exceptions are explained accurately instead of teaching obsolete absolutes.
-Distractors are incorrect examples: they are never executed by the game.
+CONTENT AND PROVENANCE
+100 core questions: 20 imports, 14 modules, 10 packages, 18 math, 12 random,
+10 platform and 16 pip. Plus 33 chapter/completion-topic original exercises.
+The adventure improves twelve assessment-topic exercises with more plausible
+distractors, realistic scenarios and additional namespace/code tracing.
+Original practice, not official questions and not copied or closely reworded
+assessments. The question bank covers the Module 1 chapters, chapter quizzes
+and completion-test topics previously inspected in the user's shared browser.
+It does not include later Python Essentials 2 modules or the full-course exam.
+Course scope: https://www.netacad.com/courses/python-essentials-2?courseLang=en-US
+Historical pip search questions explicitly explain the retired PyPI service.
+Questions distinguish modern pip behavior, regular/namespace packages, and
+platform functions whose strings can be empty.
 
 TESTING
     python -m unittest -v
-Browser learning-rule tests (with the quiz server running):
-Open browser developer tools and run:
-    const { runTests } = await import('./engine.test.js');
-    console.table(runTests(await (await fetch('questions.json')).json()));
-All returned results should have passed: true.
-Formatting checks:
-    const { runRendererTests } = await import('./renderer.test.js');
-    console.table(await runRendererTests(await (await fetch('questions.json')).json()));
-These checks cover source preservation for every question, indentation,
-syntax colors, safe HTML-shaped text, statement lists, and multiple files.
-The Python tests execute at least 40 deterministic output questions in fresh
-interpreters and compare actual output with each stored correct choice.
+Python tests execute deterministic output examples in fresh interpreters,
+check multifile modules in isolated directories, and validate the HTTP server.
+With the server running, execute in browser developer tools:
+    const bank = await (await fetch('questions.json?v=4')).json();
+    const { runTests } = await import('./engine.test.js?v=4');
+    console.table(runTests(bank));
+    const { runRendererTests } = await import('./renderer.test.js?v=4');
+    console.table(await runRendererTests(bank));
+    const { runCampaignTests } = await import('./campaign.test.js?v=4');
+    console.table(await runCampaignTests(bank));
+Every result should have passed: true. Tests cover retries, exact star
+thresholds, stage coverage, review scoring, replay rewards, save validation,
+full campaign completion, walking/jumping/landing, and code-rendering safety.
 
 FILES
-play.py           Standard-library, loopback-only Python HTTP launcher.
-questions.json    Editable 100-question bank.
-engine.js         Retry, review, score and save/restore learning rules.
-renderer.js       Safe code/text formatting and dependency-free syntax colors.
-app.js            Browser controls and local progress persistence.
-index.html        Accessible quiz page.
-style.css         Responsive dark theme.
-test_quiz.py      Bank and launcher tests.
-engine.test.js    Browser learning-rule tests.
-renderer.test.js  Browser code-formatting tests.
+play.py           Standard-library loopback-only Python HTTP launcher.
+questions.json    Original 133-question bank.
+engine.js         Question retry/review and first-attempt scoring rules.
+campaign.js       Challenge groups, unlocks, stars, levels and campaign saves.
+world.js          Original Canvas 2D art, movement, gates and input controls.
+renderer.js       Safe code/text formatting and syntax colors.
+app.js            Browser UI, dialogs and local progress persistence.
+index.html        Accessible adventure page.
+style.css         Responsive world and challenge styles.
+test_quiz.py      Question bank and launcher tests.
+engine.test.js    Browser question-engine tests.
+renderer.test.js  Browser code-rendering tests.
+campaign.test.js  Browser challenge-progression and movement tests.

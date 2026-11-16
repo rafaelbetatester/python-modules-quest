@@ -3,29 +3,86 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Modules &amp; Packages Quest</title>
+  <meta name="theme-color" content="#152b36">
+  <title>Modules &amp; Packages Quest | Python Adventure</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="style.css?v=3">
-  <script type="module" src="app.js?v=3"></script>
+  <link rel="stylesheet" href="style.css?v=4">
+  <script type="module" src="app.js?v=4"></script>
 </head>
 <body>
   <main>
-    <header>
-      <div class="eyebrow">PYTHON ESSENTIALS 2 / MODULE 1 PRACTICE</div>
-      <h1>Modules &amp; Packages <span>Quest</span></h1>
-      <p class="intro">133 challenges, including chapter-quiz and module-completion practice.</p>
+    <header class="hero">
+      <div>
+        <div class="eyebrow">PYTHON ESSENTIALS 2 / MODULE 1</div>
+        <h1>Modules &amp; Packages <span>Quest</span></h1>
+        <p class="intro">A little adventure. A lot of Python. Walk, learn, and reach the castle.</p>
+      </div>
+      <div class="hero-badge" aria-label="19 gates, 133 questions">19 GATES<br><span>133 QUESTIONS</span></div>
     </header>
-    <section class="dashboard" aria-label="Your progress">
+    <section class="dashboard" aria-label="Your adventure progress">
+      <div><strong id="level">1</strong><span>Explorer level</span></div>
+      <div><strong id="stars-count">0 / 57</strong><span>Mastery stars</span></div>
+      <div><strong id="completed-count">0 / 19</strong><span>Gates cleared</span></div>
       <div><strong id="learned">0 / 133</strong><span>Questions learned</span></div>
-      <div><strong id="score">0</strong><span>Correct first try</span></div>
-      <div><strong id="reviews">0</strong><span>Reviews completed</span></div>
     </section>
-    <progress id="progress" max="133" value="0" aria-label="Questions learned"></progress>
+    <div class="progress-caption"><span>YOUR ADVENTURE</span><span id="level-progress">5 stars to your next level</span></div>
+    <progress id="progress" max="57" value="0" aria-label="Mastery stars"></progress>
     <p id="storage" class="notice" role="status"></p>
-    <section id="quiz" class="card" aria-labelledby="question">
-      <div class="question-meta"><span id="topic">Loading...</span><span id="mode"></span></div>
+    <section class="world-card" aria-label="Walkable challenge world">
+      <div class="world-heading"><span>THE PYTHON TRAIL</span><span>Explore at your own pace</span></div>
+      <canvas id="world" width="1000" height="420" tabindex="0" role="img"
+        aria-label="2D Python adventure. Focus the scene, use left and right arrows to walk, Space to jump, and Enter at a gate. Alternatively choose a challenge from the list below."
+        aria-describedby="controls-help">Use the challenge list below if the animated world is unavailable.</canvas>
+      <div class="gate-bar">
+        <p id="nearby" role="status">Preparing your adventure...</p>
+        <button id="enter-gate" type="button" disabled>Enter challenge</button>
+      </div>
+    </section>
+    <div class="controls-row">
+      <p id="controls-help">Click the scene to play &middot; &larr; &rarr; or A/D to walk &middot; Space to jump &middot; Enter at a gate</p>
+      <div class="touch-controls" aria-label="Movement controls">
+        <button id="move-left" type="button" aria-label="Walk left">&larr;</button>
+        <button id="move-right" type="button" aria-label="Walk right">&rarr;</button>
+        <button id="jump" type="button" aria-label="Jump">Jump &uarr;</button>
+      </div>
+    </div>
+    <p id="world-message" class="notice" role="status"></p>
+    <button id="resume" type="button" hidden>Resume your paused challenge</button>
+    <section id="quest-complete" class="completion-banner" hidden>
+      <strong>You reached the castle!</strong>
+      <p>All 133 questions learned. Replay any gate to earn the remaining mastery stars.</p>
+    </section>
+    <section class="how-to" aria-label="How stars work">
+      <div><strong>EXPLORE</strong><p>Walk to a gate. Each challenge has 5&ndash;10 questions.</p></div>
+      <div><strong>EARN STARS</strong><p>First-attempt accuracy: 90% earns 3 stars, 70% earns 2. Finish to earn 1.</p></div>
+      <div><strong>LEVEL UP</strong><p>Every 5 stars raises your level. Replay to improve, never lose stars.</p></div>
+    </section>
+    <details class="stage-map">
+      <summary>Challenge map <span>Accessible play / skip the walking</span></summary>
+      <p>Chapter and completion skills first, then deeper practice. Clear each gate to unlock the next.</p>
+      <div id="challenge-list" class="challenge-list"></div>
+    </details>
+    <footer>
+      <div class="footer-actions">
+        <span id="save-status">Adventure saves in this browser.</span>
+        <button id="reset" class="secondary" type="button" disabled>Reset adventure</button>
+      </div>
+      <p class="small">133 original Module 1 practice questions. Not copied or official assessment questions.
+        Original art; no accounts, analytics, or external game libraries.
+        <a href="https://www.netacad.com/courses/python-essentials-2?courseLang=en-US" target="_blank" rel="noreferrer">Course scope</a>.
+        Older quiz progress is kept separately.</p>
+    </footer>
+  </main>
+  <dialog id="challenge-dialog" class="card" aria-labelledby="dialog-title">
+    <div class="dialog-heading">
+      <strong id="dialog-title">Challenge</strong>
+      <button id="close-challenge" class="secondary" type="button" aria-label="Return to world and keep challenge progress">Return to world &times;</button>
+    </div>
+    <section id="quiz" aria-labelledby="question">
+      <div class="question-meta"><span id="topic"></span><span id="mode"></span></div>
       <p id="practice-group" class="practice-group"></p>
-      <h2 id="question">Preparing your quest...</h2>
+      <div class="challenge-meter"><span id="challenge-score"></span><progress id="challenge-progress" max="10" value="0" aria-label="Challenge questions learned"></progress></div>
+      <h2 id="question" tabindex="-1"></h2>
       <div id="question-body" class="question-body"></div>
       <div id="options" class="options" aria-label="Answer choices"></div>
       <div id="feedback" class="feedback" role="status" aria-live="polite"></div>
@@ -33,25 +90,17 @@
         <button id="hint" class="secondary" type="button" disabled>Give me a hint</button>
         <button id="next" type="button" hidden>Next question &rarr;</button>
       </div>
+      <p class="quiz-help">A/B/C/D to answer &middot; Enter for next &middot; No timer. Learn until you get it right.</p>
     </section>
-    <section id="complete" class="card" hidden>
-      <div class="eyebrow">QUEST COMPLETE</div>
-      <h2 id="complete-title">133 questions. Stronger Python skills.</h2>
+    <section id="complete" class="result" hidden>
+      <div class="eyebrow">GATE CLEARED</div>
+      <div id="result-stars" class="result-stars" role="img"></div>
+      <h2 id="complete-title">Challenge cleared!</h2>
       <p id="summary"></p>
-      <p>You answered every question correctly and cleared all scheduled reviews.</p>
+      <p id="result-tip"></p>
+      <button id="continue" type="button">Continue adventure &rarr;</button>
     </section>
-    <footer>
-      <p>A/B/C/D to answer &middot; Enter for next &middot; Missed questions return for review.</p>
-      <div class="footer-actions">
-        <span id="save-status">Progress saves in this browser.</span>
-        <button id="reset" class="secondary" type="button">Start over</button>
-      </div>
-      <p class="small">Bank v3: 100 core + 18 completion-style + 15 chapter-quiz-style original questions.
-        Not copied or official assessment questions.
-        Based on the scope of <a href="https://www.netacad.com/courses/python-essentials-2?courseLang=en-US" target="_blank" rel="noreferrer">Python Essentials 2, Module 1</a>.
-        No accounts, tracking, or external dependencies.</p>
-    </footer>
-    <noscript>This game requires JavaScript enabled in your browser.</noscript>
-  </main>
+  </dialog>
+  <noscript>This game requires JavaScript. Enable it to explore the world and answer questions.</noscript>
 </body>
 </html>
